@@ -49,7 +49,9 @@ services:
 
   # --- AUTOMATION SERVER (CI/CD) ---
   jenkins:
-    image: jenkins/jenkins:lts-jdk17
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
     user: root
     ports:
       - "8080:8080"

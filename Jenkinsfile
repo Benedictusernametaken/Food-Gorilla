@@ -5,6 +5,13 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+    // NOTE: no pollSCM trigger here anymore. Under Multibranch Pipeline,
+    // polling/branch-discovery is configured at the JOB level instead
+    // ("Scan Repository Triggers -> Periodically", e.g. every 5 minutes),
+    // since Multibranch also needs to detect new/deleted branches, which
+    // a Jenkinsfile-level pollSCM trigger can't do on its own. Keeping
+    // both would just mean two redundant polling mechanisms.
+
     environment {
         APP_NAME          = 'foodgorilla'
         POSTGRES_USER     = 'foodgorilla_admin'
@@ -45,7 +52,12 @@ pipeline {
                 // (then fails the whole command) if a dependency never
                 // becomes healthy. This replaces the old manual staggering
                 // of "up -d database frontend" -> "sleep 10" -> "up -d backend".
-                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test up -d --build'
+                //
+                // Explicitly naming only the app services (never "jenkins")
+                // here too — even under the separate "_test" project
+                // namespace, an unqualified "up" would still spin up an
+                // unnecessary throwaway jenkins container every single run.
+                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test up -d --build database frontend backend'
 
                 echo 'Checking container status...'
                 sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test ps'
@@ -83,8 +95,14 @@ if body.get('database_connectivity') != 'CONNECTED':
             }
         }
 
-        // STAGE 3: PRODUCTION DEPLOYMENT (Only runs if Testing succeeds!)
+        // STAGE 3: PRODUCTION DEPLOYMENT (Only runs if Testing succeeds, AND only on main!)
         stage('Deploy to Production') {
+            when {
+                // Under Multibranch, every branch gets its own job. Without
+                // this guard, a teammate's feature branch push would also
+                // deploy straight to production — only merges to main should.
+                branch 'main'
+            }
             steps {
                 echo 'Cleaning up and starting production services...'
                 // No -f flags here, so Compose auto-merges docker-compose.yml +
@@ -106,8 +124,11 @@ if body.get('database_connectivity') != 'CONNECTED':
     
 
 
-        // STAGE 4: RUN ANSIBLE PLAYBOOK 
+        // STAGE 4: RUN ANSIBLE PLAYBOOK (only on main, same reasoning as Stage 3)
         stage('Deploy Application via Ansible') {
+            when {
+                branch 'main'
+            }
             steps {
                 echo '🚀 Initiating Automated Ansible Deployment...'
                 
