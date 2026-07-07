@@ -26,6 +26,15 @@ pipeline {
         // merge of docker-compose.override.yml, so the test stack never
         // inherits host port bindings (see docker-compose.override.yml).
         COMPOSE_TEST_FILES = '-f docker-compose.yml'
+
+        // Forces Compose to build images ONE AT A TIME instead of all
+        // concurrently via BuildKit. This Codespace has no swap configured
+        // (and can't have swap added — containers can't call swapon), so
+        // building database+backend+frontend simultaneously, on top of the
+        // Jenkins JVM and Docker daemon, previously spiked memory enough
+        // to kill every running container at once. Sequential builds take
+        // a bit longer but keep peak memory well below that ceiling.
+        COMPOSE_PARALLEL_LIMIT = '1'
     }
 
     stages {

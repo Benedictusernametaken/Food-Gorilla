@@ -1,0 +1,23 @@
+# docker-compose.dev.yml
+#
+# OPT-IN ONLY — never auto-merged. Use this only when running locally,
+# by hand, and you want live code edits reflected without rebuilding:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up
+#
+# WHY THIS IS SEPARATE FROM docker-compose.override.yml:
+# Jenkins' "Deploy to Production" stage runs plain `docker compose up`
+# (no -f flags), which auto-merges docker-compose.override.yml. If these
+# bind mounts lived there instead, Stage 3 would hit the EXACT same
+# "ENOENT package.json" bug that just broke Integration Testing — Jenkins
+# runs Docker via a mounted docker.sock (Docker-outside-of-Docker), so a
+# relative bind-mount path resolves against Jenkins' own container
+# filesystem, which the host Docker daemon can't see, silently mounting
+# an empty directory over /app instead. Keeping this in its own file that
+# NOTHING auto-merges means Jenkins can never accidentally pick it up.
+
+services:
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
