@@ -1,0 +1,68 @@
+name: foodgorilla  # ◄ Forces Docker to ALWAYS prefix volumes/containers with 'foodgorilla_' everywhere
+
+services:
+  # --- PRESENTATION TIER (FRONTEND) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:5000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # --- LOGIC TIER (BACKEND) ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=app.main
+      - PYTHONPATH=/app
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://foodgorilla_admin:${POSTGRES_PASSWORD}@database:5432/foodgorilla_db
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # --- DATA TIER (DATABASE) ---
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: foodgorilla_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: foodgorilla_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodgorilla_admin -d foodgorilla_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # --- AUTOMATION SERVER (CI/CD) ---
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /usr/libexec/docker/cli-plugins/docker-compose:/usr/local/lib/docker/cli-plugins/docker-compose
+
+# ==============================
+# GLOBAL VOLUMES CONFIGURATION
+# ==============================
+volumes:
+  postgres_data:
+  jenkins_data:

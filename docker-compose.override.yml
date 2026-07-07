@@ -1,0 +1,23 @@
+# docker-compose.override.yml
+#
+# Automatically merged by Compose whenever it's invoked WITHOUT explicit
+# -f flags (i.e. `docker compose up`, as used in the Deploy to Production
+# stage). Adds the host port bindings for local/production access.
+#
+# The Jenkins "Integration Testing" stage explicitly runs with
+# `-f docker-compose.yml` only, which disables this auto-merge — so the
+# test stack never claims these host ports and can never collide with
+# a running production stack (or a previous test run) on the same host.
+
+services:
+  frontend:
+    ports:
+      - "3000:3000"
+
+  backend:
+    ports:
+      - "5000:5000"
+
+  database:
+    ports:
+      - "5432:5432"
