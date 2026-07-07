@@ -3,6 +3,16 @@ pipeline {
 
     options {
         disableConcurrentBuilds()
+        // If Jenkins itself crashes mid-build, the default durability
+        // setting tries to RESUME that build on next startup by
+        // reconnecting to its old process handles. Since the whole
+        // container (and everything in it) is gone by then, that resume
+        // attempt is reconnecting to something that no longer exists —
+        // which is the likely cause of Jenkins crashing again shortly
+        // after every restart. This setting tells Jenkins to just mark
+        // an interrupted build as failed on restart instead of trying
+        // (and failing) to resume it.
+        durabilityHint('PERFORMANCE_OPTIMIZED')
     }
 
     // NOTE: no pollSCM trigger here anymore. Under Multibranch Pipeline,
