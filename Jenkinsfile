@@ -133,10 +133,19 @@ if body.get('database_connectivity') != 'CONNECTED':
                 // file — meaning a running Jenkins pipeline would try to
                 // recreate/restart the very Jenkins container it's executing
                 // inside of. Never remove this explicit service list.
+                // Now that docker-compose.yml no longer hardcodes a global
+                // "name:", Compose would otherwise derive a project name
+                // from whatever folder this happens to run in — which for
+                // Jenkins is its own internal workspace path, unrelated to
+                // the actual app. Pinning "-p foodgorilla" here keeps
+                // production deploys stable and predictable regardless of
+                // that path, without reintroducing a name that silently
+                // applies to every directory copy everywhere (the bug that
+                // caused Jenkins to keep getting killed mid-pipeline).
                 sh '''
-                    docker compose down --remove-orphans || true
-                    docker compose pull database frontend backend || true
-                    docker compose up -d --build database frontend backend
+                    docker compose -p foodgorilla down --remove-orphans || true
+                    docker compose -p foodgorilla pull database frontend backend || true
+                    docker compose -p foodgorilla up -d --build database frontend backend
                 '''
             }
         }

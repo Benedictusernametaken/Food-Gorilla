@@ -1,5 +1,3 @@
-name: foodgorilla  # ◄ Forces Docker to ALWAYS prefix volumes/containers with 'foodgorilla_' everywhere
-
 services:
   # --- PRESENTATION TIER (FRONTEND) ---
   frontend:
