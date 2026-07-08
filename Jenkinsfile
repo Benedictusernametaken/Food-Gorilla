@@ -125,6 +125,40 @@ if body.get('database_connectivity') != 'CONNECTED':
             }
         }
 
+        // STAGE 2.5: AUTO-OPEN PR TO MAIN (feature branches only, after tests pass)
+        stage('Open Pull Request to main') {
+            when {
+                // Only feature/* branches reach here — main's own runs skip
+                // this (main has nothing to open a PR against itself for),
+                // and if Integration Testing failed, Jenkins never reaches
+                // this stage at all, so a failed test run never opens a PR.
+                branch pattern: 'feature/.*', comparator: 'REGEXP'
+            }
+            steps {
+                echo '📬 Opening pull request into main...'
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                    sh '''
+                        HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" -X POST \
+                            -H "Authorization: token $GH_TOKEN" \
+                            -H "Accept: application/vnd.github+json" \
+                            https://api.github.com/repos/Benedictusernametaken/Food-Gorilla/pulls \
+                            -d "{\\"title\\":\\"Merge ${BRANCH_NAME} into main\\",\\"head\\":\\"${BRANCH_NAME}\\",\\"base\\":\\"main\\",\\"body\\":\\"Automated PR opened after Jenkins pipeline succeeded on ${BRANCH_NAME}.\\"}")
+
+                        echo "GitHub API responded with HTTP $HTTP_CODE"
+                        cat response.json
+
+                        # 201 = PR created. 422 = a PR already exists for this
+                        # branch (harmless — don't fail the build over it).
+                        # Anything else is a genuine problem worth failing loudly for.
+                        if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "422" ]; then
+                            echo "!!! Unexpected response while creating pull request !!!"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+
         // STAGE 3: PRODUCTION DEPLOYMENT (Only runs if Testing succeeds, AND only on main!)
         stage('Deploy to Production') {
             when {
