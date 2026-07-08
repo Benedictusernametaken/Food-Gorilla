@@ -142,8 +142,17 @@ if body.get('database_connectivity') != 'CONNECTED':
                 // that path, without reintroducing a name that silently
                 // applies to every directory copy everywhere (the bug that
                 // caused Jenkins to keep getting killed mid-pipeline).
+                // CRITICAL FIX: "docker compose down" has NO way to scope to
+                // specific services — it always tears down the ENTIRE named
+                // project, jenkins included, no matter what's listed after
+                // it. This was silently killing the real Jenkins container
+                // every single time this stage ran. "stop" and "rm" DO
+                // support per-service scoping, so we use those instead —
+                // this achieves the same clean teardown without ever
+                // touching anything outside database/frontend/backend.
                 sh '''
-                    docker compose -p foodgorilla down --remove-orphans || true
+                    docker compose -p foodgorilla stop database frontend backend || true
+                    docker compose -p foodgorilla rm -f database frontend backend || true
                     docker compose -p foodgorilla pull database frontend backend || true
                     docker compose -p foodgorilla up -d --build database frontend backend
                 '''
