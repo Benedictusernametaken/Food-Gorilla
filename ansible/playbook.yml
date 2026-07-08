@@ -1,0 +1,92 @@
+---
+# playbook.yml
+#
+# One file, two independent plays, selected via --tags at call time:
+#   --tags preflight   -> host-level readiness checks (Docker/Compose/disk),
+#                         run BEFORE any build, for every branch
+#   --tags smoke_test  -> post-deploy health verification, run AFTER Stage 3
+#                         has already deployed via docker compose, main only
+#
+# No separate hosts.ini needed — both plays target "localhost" directly,
+# and the Jenkinsfile passes inline inventory (-i "localhost,") instead
+# of a file, since there's only ever one host involved.
+
+- name: Preflight host checks
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: preflight
+  tasks:
+    - name: Verify Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Verify Docker Compose is installed
+      ansible.builtin.command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Check available disk space on root filesystem
+      ansible.builtin.shell: df -h / | tail -1
+      register: disk_space
+      changed_when: false
+
+    - name: Print preflight summary
+      ansible.builtin.debug:
+        msg:
+          - "Docker: {{ docker_version.stdout }}"
+          - "Compose: {{ compose_version.stdout }}"
+          - "Disk: {{ disk_space.stdout }}"
+
+- name: Post-deploy smoke test
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tags: smoke_test
+  tasks:
+    - name: Wait for backend port 5000 to be listening
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 5000
+        timeout: 30
+
+    - name: Wait for frontend port 3000 to be listening
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 3000
+        timeout: 30
+
+    - name: Hit backend health-check endpoint
+      ansible.builtin.uri:
+        url: http://127.0.0.1:5000/health-check
+        method: GET
+        return_content: true
+        status_code: 200
+      register: backend_health
+
+    - name: Assert backend reports the database as genuinely connected
+      ansible.builtin.assert:
+        that:
+          - backend_health.json.database_connectivity == "CONNECTED"
+        fail_msg: "Backend responded, but database_connectivity was not CONNECTED — deployment is unhealthy."
+        success_msg: "Backend confirms database connectivity is healthy."
+
+    - name: Hit frontend root page
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3000/
+        method: GET
+        return_content: true
+        status_code: 200
+      register: frontend_response
+
+    - name: Assert frontend rendered the expected page content
+      ansible.builtin.assert:
+        that:
+          - "'Food Gorilla' in frontend_response.content"
+        fail_msg: "Frontend responded, but expected page content was not found."
+        success_msg: "Frontend is serving the expected page."
+
+    - name: Print deployment verification summary
+      ansible.builtin.debug:
+        msg: "✅ Deployment verified: backend healthy, database connected, frontend serving correctly."

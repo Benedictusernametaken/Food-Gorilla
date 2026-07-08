@@ -57,6 +57,17 @@ pipeline {
             }
         }
 
+        // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
+        stage('Preflight Checks via Ansible') {
+            steps {
+                echo '🔍 Verifying host prerequisites (Docker, Compose, disk space)...'
+                // Read-only checks only — never touches docker compose up/down,
+                // never interacts with the running app stack. Runs before any
+                // build so a bad host environment fails fast and clearly.
+                sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags preflight'
+            }
+        }
+
         // STAGE 2: ISOLATED TESTING (Runs first!)
         stage('Integration Testing') {
             steps {
@@ -167,10 +178,10 @@ if body.get('database_connectivity') != 'CONNECTED':
                 branch 'main'
             }
             steps {
-                echo '🚀 Initiating Automated Ansible Deployment...'
-                
-                // Runs the optimized playbook using the repository configuration
-                sh "ansible-playbook your-playbook-name.yml --extra-vars 'app_workspace=${WORKSPACE} project_namespace=${APP_NAME}_${BUILD_NUMBER}'"
+                echo '🚀 Running post-deployment verification via Ansible...'
+                // This does NOT deploy anything — Stage 3 already did that.
+                // Same playbook file as the preflight stage, different tag.
+                sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags smoke_test'
             }
         }
     }
