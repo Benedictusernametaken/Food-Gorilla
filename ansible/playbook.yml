@@ -45,21 +45,28 @@
   gather_facts: false
   tags: smoke_test
   tasks:
+    # NOTE: uses Docker service names (backend/frontend), not 127.0.0.1.
+    # Ansible runs INSIDE the Jenkins container (via its own docker.sock),
+    # so 127.0.0.1 here means Jenkins' own loopback, not the host's — it
+    # can never see backend/frontend that way. Since jenkins shares the
+    # same docker-compose project/network as those services, it can reach
+    # them by service name instead, exactly like backend reaches the
+    # database via "database:5432" rather than 127.0.0.1.
     - name: Wait for backend port 5000 to be listening
       ansible.builtin.wait_for:
-        host: 127.0.0.1
+        host: backend
         port: 5000
         timeout: 30
 
     - name: Wait for frontend port 3000 to be listening
       ansible.builtin.wait_for:
-        host: 127.0.0.1
+        host: frontend
         port: 3000
         timeout: 30
 
     - name: Hit backend health-check endpoint
       ansible.builtin.uri:
-        url: http://127.0.0.1:5000/health-check
+        url: http://backend:5000/health-check
         method: GET
         return_content: true
         status_code: 200
@@ -74,7 +81,7 @@
 
     - name: Hit frontend root page
       ansible.builtin.uri:
-        url: http://127.0.0.1:3000/
+        url: http://frontend:3000/
         method: GET
         return_content: true
         status_code: 200
