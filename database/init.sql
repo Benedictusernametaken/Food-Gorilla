@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS meal_ingredients CASCADE;
 DROP TABLE IF EXISTS ingredients CASCADE;
 DROP TABLE IF EXISTS meals CASCADE;
+DROP TABLE IF EXISTS vendor_sessions CASCADE;
 DROP TABLE IF EXISTS vendors CASCADE;
 DROP TABLE IF EXISTS macro_profiles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -42,7 +43,19 @@ CREATE TABLE vendors (
     vendor_id SERIAL PRIMARY KEY,
     restaurant_name VARCHAR(100) NOT NULL,
     cuisine_type VARCHAR(50),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE
+);
+
+-- Merchant login sessions. Opaque bearer tokens rather than JWTs so a
+-- session can be revoked server-side (logout just deletes the row) without
+-- needing a signing-key rotation story.
+CREATE TABLE vendor_sessions (
+    token VARCHAR(64) PRIMARY KEY,
+    vendor_id INT REFERENCES vendors(vendor_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
 );
 
 -- Feature 2: Smart Nutritional Search & Filter (base macro columns live here)
@@ -55,7 +68,10 @@ CREATE TABLE meals (
     base_calories INT NOT NULL,
     base_protein INT NOT NULL,
     base_carbs INT NOT NULL,
-    base_fats INT NOT NULL
+    base_fats INT NOT NULL,
+    -- Merchant availability toggle. Only available meals surface in the
+    -- public marketplace search (see backend GET /api/meals/search).
+    is_available BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- Feature 3: Custom Meal-Builder CRUD
@@ -156,8 +172,17 @@ CREATE TABLE subscription_schedule (
 -- assigns SERIAL values in.)
 -- ====================================================
 
-INSERT INTO vendors (restaurant_name, cuisine_type, is_verified)
-VALUES ('Lean & Mean Kitchen', 'Healthy Western', true);
+-- Demo login: owner@leanmean.com / password123
+-- (pbkdf2:sha256 hash below is a static Werkzeug generate_password_hash()
+-- output — fine to hardcode since the salt is baked into the hash itself.)
+INSERT INTO vendors (restaurant_name, cuisine_type, email, password_hash, is_verified)
+VALUES (
+    'Lean & Mean Kitchen',
+    'Healthy Western',
+    'owner@leanmean.com',
+    'pbkdf2:sha256:1000000$1rC4DTHH9ECIsQvx$70b94da503205b07c9a2421906df5ed497c8c3ad4a086ff7d5e903c1cd0f40a8',
+    true
+);
 
 INSERT INTO meals (vendor_id, name, description, base_price, base_calories, base_protein, base_carbs, base_fats)
 VALUES (
