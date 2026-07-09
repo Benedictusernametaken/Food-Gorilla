@@ -56,6 +56,30 @@ you're the Jenkins host (see below).
 
 ## Contributing (branching & CI)
 
+### Creating a feature branch
+
+Direct pushes to `main` are blocked, so all work starts on a `feature/*`
+branch:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/short-description-of-your-work
+```
+
+Naming convention: `feature/<what-you're-building>`, lowercase, hyphens
+instead of spaces — e.g. `feature/menu-search-filter`,
+`feature/order-history-page`. This matters because the Jenkins
+Multibranch job and the auto-PR step both match on the `feature/*`
+pattern specifically.
+
+Push it up to trigger CI:
+```bash
+git push -u origin feature/short-description-of-your-work
+```
+
+### What happens after you push
+
 - All work happens on a `feature/*` branch — direct pushes to `main` are
   blocked by branch protection.
 - Pushing to a `feature/*` branch automatically triggers the Jenkins
