@@ -5,7 +5,6 @@
       "label": "Jenkins",
       "visibility": "public"
     }
-  }
+  },
+  "postStartCommand": "(docker compose -p foodgorilla start jenkins || docker compose -p foodgorilla up -d --build jenkins) && gh codespace ports visibility 8080:public -c $CODESPACE_NAME"
 }
-
-//Testing
