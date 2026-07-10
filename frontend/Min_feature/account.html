@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Account</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="auth-shell">
+    <div class="auth-card account-card">
+      <div class="top-brand">
+        <div class="logo-mark">
+          <span class="logo-icon">🦍</span>
+          <span>FoodGorilla</span>
+        </div>
+      </div>
+      <div class="auth-nav">
+        <a href="/index.html" class="nav-link">Calculator</a>
+        <a href="/account" class="nav-link active">Manage Account</a>
+        <button id="logoutButton" class="nav-link logout-button">Logout</button>
+      </div>
+
+      <div class="account-hero">
+        <div>
+          <span class="brand-pill">FoodGorilla</span>
+          <h2>Manage your production account</h2>
+          <p>Keep your profile updated so your batch planning and ingredient tracking stay in sync.</p>
+        </div>
+        <div class="account-stat">
+          <span>🍽️</span>
+          <div>
+            <strong>Smart kitchen access</strong>
+            <p>Securely edit your account and stay connected to the FoodGorilla dashboard.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-grid account-grid">
+        <section class="account-details-card">
+          <div class="section-label">Account Details</div>
+          <div id="accountDetails" class="account-details-panel auth-message success">Loading...</div>
+        </section>
+
+        <section class="account-update-card">
+          <div class="section-label">Update Profile</div>
+          <form id="accountForm" class="account-form">
+            <div class="form-group">
+              <label for="name">Full name</label>
+              <input type="text" id="name" name="name" placeholder="Full name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+              <label for="password">New password</label>
+              <input type="password" id="password" name="password" placeholder="New password">
+            </div>
+            <button type="submit" class="btn-submit">Save Changes</button>
+          </form>
+          <div id="accountMessage" class="auth-message" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <section class="saved-profiles-section account-saved-profiles">
+        <div class="section-label">Saved Profiles</div>
+        <div id="savedProfilesList" class="saved-profiles-list"></div>
+        <div id="profilesEmpty" class="empty-state">No saved profiles yet. Calculate macros to create one.</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    async function loadAccount() {
+      const details = document.getElementById('accountDetails');
+
+      try {
+        const response = await fetch('/api/me', { credentials: 'same-origin' });
+        const data = await response.json();
+
+        if (!response.ok) {
+          window.location.href = '/';
+          return;
+        }
+
+        details.className = 'auth-message success';
+        details.innerHTML = `<strong>Name:</strong> ${data.user.name}<br><strong>Email:</strong> ${data.user.email}`;
+
+        document.querySelector('input[name="name"]').value = data.user.name;
+        document.querySelector('input[name="email"]').value = data.user.email;
+      } catch (error) {
+        window.location.href = '/';
+      }
+    }
+
+    document.getElementById('accountForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const payload = Object.fromEntries(formData.entries());
+      const message = document.getElementById('accountMessage');
+
+      try {
+        const response = await fetch('/api/me', { credentials: 'same-origin' });
+        const currentUser = await response.json();
+
+        if (!response.ok || !currentUser.user) {
+          window.location.href = '/';
+          return;
+        }
+
+        const updateResponse = await fetch(`/api/account/${currentUser.user.id}`, {
+          method: 'PUT',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const updateData = await updateResponse.json();
+
+        message.className = 'auth-message';
+        if (updateResponse.ok) {
+          message.classList.add('success');
+          message.textContent = updateData.message || 'Account updated.';
+          loadAccount();
+        } else {
+          message.classList.add('error');
+          message.textContent = updateData.error || 'Unable to update account.';
+        }
+      } catch (error) {
+        message.className = 'auth-message error';
+        message.textContent = 'Unable to update account.';
+      }
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+      } catch (error) {
+        // ignore
+      }
+      window.location.href = '/';
+    });
+
+    function getSavedProfiles() {
+      const saved = localStorage.getItem('foodGorillaProfiles');
+      if (!saved) {
+        return [];
+      }
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        localStorage.removeItem('foodGorillaProfiles');
+        return [];
+      }
+    }
+
+    function setSavedProfiles(profiles) {
+      localStorage.setItem('foodGorillaProfiles', JSON.stringify(profiles));
+    }
+
+    function renderSavedProfiles() {
+      const profiles = getSavedProfiles();
+      const list = document.getElementById('savedProfilesList');
+      const empty = document.getElementById('profilesEmpty');
+
+      list.innerHTML = '';
+      if (!profiles.length) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      profiles.forEach((profile) => {
+        const item = document.createElement('div');
+        item.className = 'saved-profile-item';
+        item.innerHTML = `
+          <div class="profile-meta">
+            <div class="profile-name">${profile.name || profile.goal.charAt(0).toUpperCase() + profile.goal.slice(1)} profile</div>
+            <div class="profile-date">${new Date(profile.timestamp).toLocaleString()}</div>
+          </div>
+          <div class="profile-actions">
+            <button type="button" data-id="${profile.id}" class="load-profile">Load</button>
+            <button type="button" data-id="${profile.id}" class="delete-profile">Delete</button>
+          </div>
+        `;
+
+        list.appendChild(item);
+      });
+
+      list.querySelectorAll('.load-profile').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const profileId = event.target.dataset.id;
+          const profile = profiles.find((entry) => entry.id === profileId);
+          if (!profile) return;
+          localStorage.setItem('foodGorillaCurrentProfile', JSON.stringify(profile));
+          window.location.href = '/index.html';
+        });
+      });
+
+      list.querySelectorAll('.delete-profile').forEach((button) => {
+        button.addEventListener('click', (event) => {
+          const profileId = event.target.dataset.id;
+          const remaining = profiles.filter((entry) => entry.id !== profileId);
+          setSavedProfiles(remaining);
+          renderSavedProfiles();
+        });
+      });
+    }
+
+    loadAccount();
+    renderSavedProfiles();
+  </script>
+</body>
+</html>
