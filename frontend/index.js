@@ -54,27 +54,14 @@ async function getMeals() {
     return data;
 }
 
-app.get('/', async (req, res) => {
-    try {
-        const response = await fetch(`${BACKEND_URL}/health-check`);
-        const data = await response.json();
-
-        res.render('home', {
-            status: data.status,
-            databaseConnectivity: data.database_connectivity,
-        });
-    } catch (err) {
-        res.status(502).render('home', {
-            status: 'degraded',
-            databaseConnectivity: `Backend unreachable: ${err.message}`,
-        });
-    }
+app.get('/', (req, res) => {
+    res.redirect('/menu');
 });
 
 app.get('/menu', async (req, res) => {
     try {
         const meals = await getMeals();
-        res.render('menu', { meals, active: 'menu' });
+        res.render('menu', { meals, error: null, active: 'menu' });
     } catch (err) {
         res.status(502).render('menu', { meals: [], error: err.message, active: 'menu' });
     }
@@ -129,34 +116,13 @@ app.post('/login', async (req, res) => {
         }
 
         setAuthCookie(res, data.token);
-        res.redirect('/dashboard');
+        res.redirect('/checkout');
     } catch (err) {
         res.status(502).render('login', {
             active: 'login',
             error: err.message,
             form: req.body,
         });
-    }
-});
-
-app.get('/dashboard', async (req, res) => {
-    const cookies = parseCookies(req);
-    const token = cookies.auth_token;
-
-    if (!token) {
-        return res.redirect('/login');
-    }
-
-    try {
-        const { response, data } = await fetchBackend('/dashboard', { token });
-        if (!response.ok) {
-            clearAuthCookie(res);
-            return res.redirect('/login');
-        }
-
-        res.render('dashboard', { active: 'dashboard', summary: data });
-    } catch (err) {
-        res.status(502).render('dashboard', { active: 'dashboard', summary: null, error: err.message });
     }
 });
 
@@ -172,7 +138,7 @@ app.get('/checkout', async (req, res) => {
         const meals = await getMeals();
         res.render('checkout', { active: 'checkout', meals, error: null, success: null });
     } catch (err) {
-        res.status(502).render('checkout', { active: 'checkout', meals: [], error: err.message, success: null });
+        res.status(502).render('checkout', { active: 'checkout', meals: [], error: null, success: null });
     }
 });
 
@@ -212,7 +178,7 @@ app.post('/checkout', async (req, res) => {
         res.status(502).render('checkout', {
             active: 'checkout',
             meals,
-            error: err.message,
+            error: null,
             success: null,
         });
     }

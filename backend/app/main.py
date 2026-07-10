@@ -318,33 +318,6 @@ def checkout():
         connection.close()
 
 
-@app.route('/dashboard')
-def dashboard():
-    user_id = get_authenticated_user_id()
-    if not user_id:
-        return jsonify({"error": "Authentication required."}), 401
-
-    connection = get_db_connection()
-    try:
-        cursor = connection.cursor(cursor_factory=RealDictCursor)
-        cursor.execute(
-            "SELECT total_calories_consumed, total_protein_consumed, total_carbs_consumed, total_fats_consumed FROM daily_logs WHERE user_id = %s AND log_date = CURRENT_DATE",
-            (user_id,),
-        )
-        row = cursor.fetchone()
-        cursor.close()
-        if row:
-            return jsonify(row)
-        return jsonify({
-            "total_calories_consumed": 0,
-            "total_protein_consumed": 0,
-            "total_carbs_consumed": 0,
-            "total_fats_consumed": 0,
-        })
-    finally:
-        connection.close()
-
-
 @app.route('/logout')
 def logout():
     token = get_session_token()
