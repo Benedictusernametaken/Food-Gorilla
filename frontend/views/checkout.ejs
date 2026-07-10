@@ -27,6 +27,12 @@
       <% if (success) { %>
         <div class="alert alert-success"><%= success %></div>
       <% } %>
+      <% if (alerts && alerts.length) { %>
+        <div class="alert alert-warning">
+          <strong>Macro alert:</strong>
+          <%= alerts.map((alert) => alert.macro).join(', ') %> changed tiers.
+        </div>
+      <% } %>
       <div class="card shadow-sm">
         <div class="card-body">
           <form method="post" action="/checkout">

@@ -136,9 +136,37 @@ app.get('/checkout', async (req, res) => {
 
     try {
         const meals = await getMeals();
-        res.render('checkout', { active: 'checkout', meals, error: null, success: null });
+        res.render('checkout', { active: 'checkout', meals, error: null, success: null, alerts: [] });
     } catch (err) {
-        res.status(502).render('checkout', { active: 'checkout', meals: [], error: null, success: null });
+        res.status(502).render('checkout', { active: 'checkout', meals: [], error: null, success: null, alerts: [] });
+    }
+});
+
+async function getDashboard(token) {
+    const { response, data } = await fetchBackend('/dashboard', {
+        token,
+    });
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Unable to load dashboard.');
+    }
+
+    return data;
+}
+
+app.get('/dashboard', async (req, res) => {
+    const cookies = parseCookies(req);
+    const token = cookies.auth_token;
+
+    if (!token) {
+        return res.redirect('/login');
+    }
+
+    try {
+        const dashboard = await getDashboard(token);
+        res.render('dashboard', { active: 'dashboard', dashboard, error: null });
+    } catch (err) {
+        res.status(502).render('dashboard', { active: 'dashboard', dashboard: null, error: err.message });
     }
 });
 
@@ -164,6 +192,7 @@ app.post('/checkout', async (req, res) => {
                 meals,
                 error: data.error || 'Checkout failed.',
                 success: null,
+                alerts: [],
             });
         }
 
@@ -172,6 +201,7 @@ app.post('/checkout', async (req, res) => {
             meals,
             error: null,
             success: data.message || 'Order placed successfully.',
+            alerts: data.alerts || [],
         });
     } catch (err) {
         const meals = await getMeals().catch(() => []);
@@ -180,6 +210,7 @@ app.post('/checkout', async (req, res) => {
             meals,
             error: null,
             success: null,
+            alerts: [],
         });
     }
 });
