@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Request Password Reset</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main style="max-width:480px;margin:24px auto;padding:16px">
+    <h1>Get Help</h1>
+    <p>Enter your email and we'll send a password reset link if it's registered.</p>
+    <form id="resetRequestForm">
+      <input type="email" name="email" placeholder="Email" required>
+      <button type="submit">Send reset link</button>
+    </form>
+    <div id="message" aria-live="polite"></div>
+    <p><a href="/">Back</a></p>
+  </main>
+
+  <script>
+    const form = document.getElementById('resetRequestForm');
+    const msg = document.getElementById('message');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const res = await fetch('/api/request-password-reset', { method: 'POST', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: fd.get('email') }) });
+      const data = await res.json();
+      if (res.ok) { msg.style.color = 'green'; msg.textContent = data.message || 'If that email is registered, a reset link has been sent.'; form.reset(); } else { msg.style.color = 'crimson'; msg.textContent = data.error || 'Request failed.'; }
+    });
+  </script>
+</body>
+</html>
