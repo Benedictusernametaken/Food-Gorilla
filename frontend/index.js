@@ -31,6 +31,12 @@ function clearAuthCookie(res) {
     res.setHeader('Set-Cookie', 'auth_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
 }
 
+function renderViewWithAuth(res, req, view, locals = {}) {
+    const cookies = parseCookies(req);
+    const token = cookies.auth_token;
+    return res.render(view, { isAuthenticated: Boolean(token), ...locals });
+}
+
 async function fetchBackend(path, options = {}) {
     const response = await fetch(`${BACKEND_URL}${path}`, {
         headers: {
@@ -61,14 +67,15 @@ app.get('/', (req, res) => {
 app.get('/menu', async (req, res) => {
     try {
         const meals = await getMeals();
-        res.render('menu', { meals, error: null, active: 'menu' });
+        renderViewWithAuth(res, req, 'menu', { meals, error: null, active: 'menu' });
     } catch (err) {
-        res.status(502).render('menu', { meals: [], error: err.message, active: 'menu' });
+        res.status(502);
+        renderViewWithAuth(res, req, 'menu', { meals: [], error: err.message, active: 'menu' });
     }
 });
 
 app.get('/register', (req, res) => {
-    res.render('register', { active: 'register', error: null, form: {} });
+    renderViewWithAuth(res, req, 'register', { active: 'register', error: null, form: {} });
 });
 
 app.post('/register', async (req, res) => {
@@ -79,7 +86,8 @@ app.post('/register', async (req, res) => {
         });
 
         if (!response.ok) {
-            return res.status(response.status).render('register', {
+            res.status(response.status);
+            return renderViewWithAuth(res, req, 'register', {
                 active: 'register',
                 error: data.error || 'Registration failed.',
                 form: req.body,
@@ -88,7 +96,8 @@ app.post('/register', async (req, res) => {
 
         res.redirect('/login');
     } catch (err) {
-        res.status(502).render('register', {
+        res.status(502);
+        renderViewWithAuth(res, req, 'register', {
             active: 'register',
             error: err.message,
             form: req.body,
@@ -97,7 +106,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', { active: 'login', error: null, form: {} });
+    renderViewWithAuth(res, req, 'login', { active: 'login', error: null, form: {} });
 });
 
 app.post('/login', async (req, res) => {
@@ -108,7 +117,8 @@ app.post('/login', async (req, res) => {
         });
 
         if (!response.ok) {
-            return res.status(response.status).render('login', {
+            res.status(response.status);
+            return renderViewWithAuth(res, req, 'login', {
                 active: 'login',
                 error: data.error || 'Login failed.',
                 form: req.body,
@@ -116,9 +126,10 @@ app.post('/login', async (req, res) => {
         }
 
         setAuthCookie(res, data.token);
-        res.redirect('/checkout');
+        res.redirect('/dashboard');
     } catch (err) {
-        res.status(502).render('login', {
+        res.status(502);
+        renderViewWithAuth(res, req, 'login', {
             active: 'login',
             error: err.message,
             form: req.body,
@@ -136,9 +147,10 @@ app.get('/checkout', async (req, res) => {
 
     try {
         const meals = await getMeals();
-        res.render('checkout', { active: 'checkout', meals, error: null, success: null, alerts: [] });
+        renderViewWithAuth(res, req, 'checkout', { active: 'checkout', meals, error: null, success: null, alerts: [] });
     } catch (err) {
-        res.status(502).render('checkout', { active: 'checkout', meals: [], error: null, success: null, alerts: [] });
+        res.status(502);
+        renderViewWithAuth(res, req, 'checkout', { active: 'checkout', meals: [], error: null, success: null, alerts: [] });
     }
 });
 
@@ -164,9 +176,10 @@ app.get('/dashboard', async (req, res) => {
 
     try {
         const dashboard = await getDashboard(token);
-        res.render('dashboard', { active: 'dashboard', dashboard, error: null });
+        renderViewWithAuth(res, req, 'dashboard', { active: 'dashboard', dashboard, error: null });
     } catch (err) {
-        res.status(502).render('dashboard', { active: 'dashboard', dashboard: null, error: err.message });
+        res.status(502);
+        renderViewWithAuth(res, req, 'dashboard', { active: 'dashboard', dashboard: null, error: err.message });
     }
 });
 
@@ -187,7 +200,8 @@ app.post('/checkout', async (req, res) => {
 
         const meals = await getMeals();
         if (!response.ok) {
-            return res.status(response.status).render('checkout', {
+            res.status(response.status);
+            return renderViewWithAuth(res, req, 'checkout', {
                 active: 'checkout',
                 meals,
                 error: data.error || 'Checkout failed.',
@@ -196,7 +210,7 @@ app.post('/checkout', async (req, res) => {
             });
         }
 
-        res.render('checkout', {
+        renderViewWithAuth(res, req, 'checkout', {
             active: 'checkout',
             meals,
             error: null,
@@ -205,7 +219,8 @@ app.post('/checkout', async (req, res) => {
         });
     } catch (err) {
         const meals = await getMeals().catch(() => []);
-        res.status(502).render('checkout', {
+        res.status(502);
+        renderViewWithAuth(res, req, 'checkout', {
             active: 'checkout',
             meals,
             error: null,

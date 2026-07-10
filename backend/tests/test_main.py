@@ -61,6 +61,14 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(result["total_carbs_consumed"], 45)
         self.assertEqual(result["total_fats_consumed"], 15)
 
+    def test_accumulate_daily_log_creates_new_log(self):
+        order_totals = {"calories": 300, "protein": 15, "carbs": 25, "fats": 10}
+        result = main.accumulate_daily_log(None, order_totals)
+        self.assertEqual(result["total_calories_consumed"], 300)
+        self.assertEqual(result["total_protein_consumed"], 15)
+        self.assertEqual(result["total_carbs_consumed"], 25)
+        self.assertEqual(result["total_fats_consumed"], 10)
+
     def test_build_weekly_history_returns_7_entries(self):
         end_date = datetime.date.today()
         rows = [

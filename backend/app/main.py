@@ -32,7 +32,12 @@ def get_session_token():
     if authorization.startswith("Bearer "):
         return authorization.split(" ", 1)[1].strip()
 
-    return request.headers.get("X-Session-Token") or request.args.get("session_token") or ""
+    return (
+        request.headers.get("X-Session-Token")
+        or request.args.get("session_token")
+        or request.cookies.get("auth_token")
+        or ""
+    )
 
 
 def get_authenticated_user_id():
@@ -71,7 +76,12 @@ def build_weekly_history(log_rows, end_date, target_calories):
 
 def accumulate_daily_log(existing_log, order_totals):
     if existing_log is None:
-        return order_totals.copy()
+        return {
+            "total_calories_consumed": order_totals["calories"],
+            "total_protein_consumed": order_totals["protein"],
+            "total_carbs_consumed": order_totals["carbs"],
+            "total_fats_consumed": order_totals["fats"],
+        }
 
     return {
         "total_calories_consumed": existing_log["total_calories_consumed"] + order_totals["calories"],
