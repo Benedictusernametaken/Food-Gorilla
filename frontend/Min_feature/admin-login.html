@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f7fb; margin: 0; }
+    .admin-login-shell { width: 100%; max-width: 420px; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+    .admin-login-shell h1 { margin-top: 0; }
+    .admin-login-shell input { width: 100%; margin: 8px 0; padding: 12px 14px; border: 1px solid #d9dbe1; border-radius: 8px; }
+    .admin-login-shell button { width: 100%; padding: 12px; margin-top: 16px; background: #2e6ad9; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .admin-login-shell button:hover { background: #224fb8; }
+    .admin-message { margin-top: 12px; min-height: 24px; }
+    .admin-message.error { color: #c0392b; }
+    .admin-message.success { color: #2f8e44; }
+    .admin-login-shell .secondary { margin-top: 16px; font-size: 0.95rem; color: #555; }
+    .admin-login-shell a { color: #2e6ad9; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="admin-login-shell">
+    <h1>Admin Login</h1>
+    <p>Use your admin username or email to access the dashboard.</p>
+    <form id="adminLoginForm">
+      <input type="text" name="username" placeholder="Username or email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <div id="adminMessage" class="admin-message" aria-live="polite"></div>
+    <div class="secondary">
+      <p>Not an admin? <a href="/auth">Go to user login</a></p>
+    </div>
+  </div>
+
+  <script>
+    const nextPath = new URLSearchParams(window.location.search).get('next') || '/admin';
+    const form = document.getElementById('adminLoginForm');
+    const message = document.getElementById('adminMessage');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      message.textContent = '';
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      try {
+        const response = await fetch('/api/admin-login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          message.className = 'admin-message error';
+          message.textContent = result.error || 'Unable to sign in.';
+          return;
+        }
+
+        message.className = 'admin-message success';
+        message.textContent = result.message || 'Signed in successfully.';
+        setTimeout(() => {
+          window.location.href = nextPath;
+        }, 400);
+      } catch (err) {
+        message.className = 'admin-message error';
+        message.textContent = 'Unable to reach the server.';
+      }
+    });
+  </script>
+</body>
+</html>
