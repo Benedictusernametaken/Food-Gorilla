@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reset Password</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main style="max-width:480px;margin:24px auto;padding:16px">
+    <h1>Reset Password</h1>
+    <form id="resetForm">
+      <input type="password" name="password" placeholder="New password" required>
+      <input type="password" name="passwordConfirm" placeholder="Confirm password" required>
+      <button type="submit">Set new password</button>
+    </form>
+    <div id="message" aria-live="polite"></div>
+    <p><a href="/">Back</a></p>
+  </main>
+
+  <script>
+    function qs(name) {
+      const params = new URLSearchParams(location.search);
+      return params.get(name);
+    }
+    const token = qs('token');
+    const email = qs('email');
+    const form = document.getElementById('resetForm');
+    const msg = document.getElementById('message');
+    if (!token) {
+      msg.style.color = 'crimson';
+      msg.textContent = 'Invalid reset link.';
+    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const payload = { token, password: fd.get('password'), passwordConfirm: fd.get('passwordConfirm') };
+      const res = await fetch('/api/reset-password', { method: 'POST', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (res.ok) { msg.style.color = 'green'; msg.textContent = data.message || 'Password updated.'; form.reset(); setTimeout(() => { location.href = '/auth'; }, 1200); } else { msg.style.color = 'crimson'; msg.textContent = data.error || 'Reset failed.'; }
+    });
+  </script>
+</body>
+</html>
