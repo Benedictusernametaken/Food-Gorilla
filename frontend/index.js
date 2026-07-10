@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
@@ -7,26 +8,219 @@ const PORT = 3000;
 // local/test/prod the same way DATABASE_URL does on the backend.
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:5000';
 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+function parseCookies(req) {
+    const cookieHeader = req.headers.cookie || '';
+    return Object.fromEntries(
+        cookieHeader.split(';').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
+            const [name, ...rest] = entry.split('=');
+            return [name, rest.join('=')];
+        })
+    );
+}
+
+function setAuthCookie(res, token) {
+    res.setHeader('Set-Cookie', `auth_token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`);
+}
+
+function clearAuthCookie(res) {
+    res.setHeader('Set-Cookie', 'auth_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+}
+
+async function fetchBackend(path, options = {}) {
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        },
+        ...options,
+        body: options.body ? (typeof options.body === 'string' ? options.body : JSON.stringify(options.body)) : undefined,
+    });
+
+    const contentType = response.headers.get('content-type') || '';
+    const data = contentType.includes('application/json') ? await response.json() : await response.text();
+    return { response, data };
+}
+
+async function getMeals() {
+    const { response, data } = await fetchBackend('/meals');
+    if (!response.ok) {
+        throw new Error(data.error || 'Unable to load meals.');
+    }
+    return data;
+}
+
 app.get('/', async (req, res) => {
     try {
-        // Server-side call: this request happens inside the Docker network,
-        // never in the user's browser, so no CORS setup is needed.
         const response = await fetch(`${BACKEND_URL}/health-check`);
         const data = await response.json();
 
-        res.send(`
-            <h1>Welcome to the Food Gorilla Frontend Tier!</h1>
-            <p>Backend status: ${data.status}</p>
-            <p>Database connectivity (via backend): ${data.database_connectivity}</p>
-        `);
+        res.render('home', {
+            status: data.status,
+            databaseConnectivity: data.database_connectivity,
+        });
     } catch (err) {
-        // Frontend container itself is fine — it's the backend that's
-        // unreachable. Keeping this distinction visible matters for debugging.
-        res.status(502).send(`
-            <h1>Food Gorilla Frontend is running</h1>
-            <p>But the backend could not be reached: ${err.message}</p>
-        `);
+        res.status(502).render('home', {
+            status: 'degraded',
+            databaseConnectivity: `Backend unreachable: ${err.message}`,
+        });
     }
+});
+
+app.get('/menu', async (req, res) => {
+    try {
+        const meals = await getMeals();
+        res.render('menu', { meals, active: 'menu' });
+    } catch (err) {
+        res.status(502).render('menu', { meals: [], error: err.message, active: 'menu' });
+    }
+});
+
+app.get('/register', (req, res) => {
+    res.render('register', { active: 'register', error: null, form: {} });
+});
+
+app.post('/register', async (req, res) => {
+    try {
+        const { response, data } = await fetchBackend('/register', {
+            method: 'POST',
+            body: req.body,
+        });
+
+        if (!response.ok) {
+            return res.status(response.status).render('register', {
+                active: 'register',
+                error: data.error || 'Registration failed.',
+                form: req.body,
+            });
+        }
+
+        res.redirect('/login');
+    } catch (err) {
+        res.status(502).render('register', {
+            active: 'register',
+            error: err.message,
+            form: req.body,
+        });
+    }
+});
+
+app.get('/login', (req, res) => {
+    res.render('login', { active: 'login', error: null, form: {} });
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        const { response, data } = await fetchBackend('/login', {
+            method: 'POST',
+            body: req.body,
+        });
+
+        if (!response.ok) {
+            return res.status(response.status).render('login', {
+                active: 'login',
+                error: data.error || 'Login failed.',
+                form: req.body,
+            });
+        }
+
+        setAuthCookie(res, data.token);
+        res.redirect('/dashboard');
+    } catch (err) {
+        res.status(502).render('login', {
+            active: 'login',
+            error: err.message,
+            form: req.body,
+        });
+    }
+});
+
+app.get('/dashboard', async (req, res) => {
+    const cookies = parseCookies(req);
+    const token = cookies.auth_token;
+
+    if (!token) {
+        return res.redirect('/login');
+    }
+
+    try {
+        const { response, data } = await fetchBackend('/dashboard', { token });
+        if (!response.ok) {
+            clearAuthCookie(res);
+            return res.redirect('/login');
+        }
+
+        res.render('dashboard', { active: 'dashboard', summary: data });
+    } catch (err) {
+        res.status(502).render('dashboard', { active: 'dashboard', summary: null, error: err.message });
+    }
+});
+
+app.get('/checkout', async (req, res) => {
+    const cookies = parseCookies(req);
+    const token = cookies.auth_token;
+
+    if (!token) {
+        return res.redirect('/login');
+    }
+
+    try {
+        const meals = await getMeals();
+        res.render('checkout', { active: 'checkout', meals, error: null, success: null });
+    } catch (err) {
+        res.status(502).render('checkout', { active: 'checkout', meals: [], error: err.message, success: null });
+    }
+});
+
+app.post('/checkout', async (req, res) => {
+    const cookies = parseCookies(req);
+    const token = cookies.auth_token;
+
+    if (!token) {
+        return res.redirect('/login');
+    }
+
+    try {
+        const { response, data } = await fetchBackend('/checkout', {
+            method: 'POST',
+            token,
+            body: req.body,
+        });
+
+        const meals = await getMeals();
+        if (!response.ok) {
+            return res.status(response.status).render('checkout', {
+                active: 'checkout',
+                meals,
+                error: data.error || 'Checkout failed.',
+                success: null,
+            });
+        }
+
+        res.render('checkout', {
+            active: 'checkout',
+            meals,
+            error: null,
+            success: data.message || 'Order placed successfully.',
+        });
+    } catch (err) {
+        const meals = await getMeals().catch(() => []);
+        res.status(502).render('checkout', {
+            active: 'checkout',
+            meals,
+            error: err.message,
+            success: null,
+        });
+    }
+});
+
+app.get('/logout', (req, res) => {
+    clearAuthCookie(res);
+    res.redirect('/login');
 });
 
 app.listen(PORT, () => {
