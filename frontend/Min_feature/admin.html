@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Users</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-shell { max-width: 900px; margin: 24px auto; padding: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #ddd; }
+    .actions button { margin-right: 8px; }
+    .hidden { display: none !important; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
+    .modal:not(.hidden) { display: flex; }  
+    .modal-card { background: #fff; padding: 16px; width: 420px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <h1>Admin — Users</h1>
+    <p><a href="/account">Back to account</a></p>
+    <div id="message" aria-live="polite"></div>
+    <section id="metricsSection" class="metrics-panel">
+      <h2>Monitoring</h2>
+      <button id="refreshMetrics" type="button">Refresh metrics</button>
+      <div id="metricsLoading">Loading metrics...</div>
+      <ul id="metricsList"></ul>
+    </section>
+    <table id="usersTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Admin</th><th>Created</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="editModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>Edit user</h3>
+      <form id="editForm">
+        <input id="editId" type="hidden" name="id" />
+        <label>Name<br><input name="name" type="text" /></label>
+        <label>Username / Email<br><input name="email" type="text" /></label>
+        <label><input name="isAdmin" type="checkbox" /> Is Admin</label>
+        <div style="margin-top:12px">
+          <button type="submit">Save</button>
+          <button type="button" id="cancelEdit">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const msgEl = document.getElementById('message');
+    const tbody = document.querySelector('#usersTable tbody');
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const editIdInput = document.getElementById('editId');
+    const cancelEdit = document.getElementById('cancelEdit');
+
+    function showMessage(text, isError) {
+      msgEl.textContent = text;
+      msgEl.style.color = isError ? 'crimson' : 'green';
+      setTimeout(() => { msgEl.textContent = ''; }, 4000);
+    }
+
+    const metricsLoading = document.getElementById('metricsLoading');
+    const metricsList = document.getElementById('metricsList');
+    const refreshMetricsButton = document.getElementById('refreshMetrics');
+
+    async function loadMetrics() {
+      metricsLoading.textContent = 'Loading metrics...';
+      metricsList.innerHTML = '';
+      try {
+        const res = await fetch('/api/metrics', { credentials: 'same-origin' });
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          throw new Error(json.error || 'Unable to load metrics');
+        }
+        const data = await res.json();
+        renderMetrics(data);
+      } catch (err) {
+        metricsLoading.textContent = err.message;
+      }
+    }
+
+    function renderMetrics(data) {
+      metricsLoading.textContent = '';
+      metricsList.innerHTML = '';
+      const items = [
+        ['Uptime (s)', data.uptimeSeconds],
+        ['Total users', data.totalUsers],
+      ];
+
+      if (data.metrics) {
+        Object.entries(data.metrics).forEach(([key, value]) => {
+          items.push([key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()), value]);
+        });
+      }
+
+      items.forEach(([label, value]) => {
+        const li = document.createElement('li');
+        li.textContent = `${label}: ${value ?? '—'}`;
+        metricsList.appendChild(li);
+      });
+    }
+
+    refreshMetricsButton.addEventListener('click', loadMetrics);
+
+    async function loadUsers() {
+      const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
+      if (!res.ok) { showMessage('Unable to load users', true); return; }
+      const data = await res.json();
+      tbody.innerHTML = '';
+      data.users.forEach((u) => {
+        console.log("User from API:", u);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.name || ''}</td><td>${u.email}</td><td>${u.isAdmin ? 'Yes' : 'No'}</td><td>${u.createdAt ? new Date(Number(u.createdAt)).toLocaleString() : ''}</td><td class="actions"></td>`;
+        const actions = tr.querySelector('.actions');
+        const editBtn = document.createElement('button'); editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => openEdit(u));
+        const delBtn = document.createElement('button'); delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => doDelete(u.id));
+        actions.appendChild(editBtn); actions.appendChild(delBtn);
+        tbody.appendChild(tr);
+      });
+    }
+
+    
+
+function openEdit(user) {
+  
+    console.log("OPENING USER:", user);
+
+    editIdInput.value = user.id;
+
+    document.querySelector('#editForm input[name="name"]').value =
+        user.name || '';
+
+    document.querySelector('#editForm input[name="email"]').value =
+        user.email || '';
+
+    document.querySelector('#editForm input[name="isAdmin"]').checked =
+        !!user.isAdmin;
+
+    editModal.classList.remove('hidden');
+
+    document.querySelector('#editForm input[name="name"]').focus();
+}
+
+    function closeEditModal() {
+      console.log("CLOSING MODAL");
+      editModal.classList.add('hidden');
+    }
+
+    cancelEdit.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeEditModal();
+    });
+
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) {
+        closeEditModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+        closeEditModal();
+      }
+    });
+    
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(editForm);
+      const id = formData.get('id');
+      const payload = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        isAdmin: formData.get('isAdmin') === 'on'
+      };
+      
+      console.log('ID:', id);
+      console.log('Payload:', payload);
+
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PUT', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      console.log('Response Status:', res.status);
+      console.log('Response Data:', data);
+      if (!res.ok) { showMessage(data.error || 'Failed to update', true); return; }
+      showMessage('User updated');
+      editModal.classList.add('hidden');
+      loadUsers();
+    });
+
+    async function doDelete(id) {
+      if (!confirm('Delete this user?')) return;
+      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+      const data = await res.json();
+      if (!res.ok) { showMessage(data.error || 'Delete failed', true); return; }
+      showMessage('User deleted');
+      loadUsers();
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>
