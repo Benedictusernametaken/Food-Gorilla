@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fitness Macro Calculator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero-header">
+      <div class="top-brand">
+        <div class="logo-mark">
+          <span class="logo-icon">🦍</span>
+          <span>FoodGorilla</span>
+        </div>
+      </div>
+      <div id="pageNav" class="page-nav">
+        <a class="nav-link" href="/">Login / Sign Up</a>
+        <a class="nav-link" href="/admin-login">Admin Login</a>
+      </div>
+
+      <div class="hero-headline">
+        <span class="brand-pill">FoodGorilla</span>
+        <h1>Macro targets for food production teams</h1>
+        <p>Balance energy, protein, carbs and fat while staying aligned with kitchen planning and ingredient flow.</p>
+      </div>
+
+      <div class="hero-icons">
+        <span>🍎</span>
+        <span>🥦</span>
+        <span>🍞</span>
+        <span>🥑</span>
+        <span>🍗</span>
+      </div>
+    </header>
+
+    <main>
+      <form id="macroForm">
+        <fieldset>
+          <legend>Personal Information</legend>
+          <div class="form-group">
+            <label for="units">Units:</label>
+            <select id="units" name="units">
+              <option value="imperial">Imperial (lbs/in)</option>
+              <option value="metric">Metric (kg/cm)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="age">Age (years):</label>
+            <input type="number" id="age" name="age" min="0" step="1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="weight">Weight (lbs):</label>
+            <input type="number" id="weight" name="weight" min="20" step="0.1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="height">Height (inches):</label>
+            <input type="number" id="height" name="height" min="36" step="0.1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="activity">Activity Level:</label>
+            <select id="activity" name="activity" required>
+              <option value="">Select activity level</option>
+              <option value="sedentary">Sedentary (little exercise)</option>
+              <option value="lightly">Lightly Active (1-3 days/week)</option>
+              <option value="moderate">Moderately Active (3-5 days/week)</option>
+              <option value="very">Very Active (6-7 days/week)</option>
+              <option value="extremely">Extremely Active (2x per day)</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Fitness Goal</legend>
+          <div class="form-group">
+            <label for="goal">Primary Goal:</label>
+            <select id="goal" name="goal" required>
+              <option value="">Select goal</option>
+              <option value="lose">Lose Weight</option>
+              <option value="maintain">Maintain Weight</option>
+              <option value="gain">Gain Muscle</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-submit">Calculate Macros</button>
+        <div id="formMessage" class="form-message" aria-live="polite"></div>
+      </form>
+
+      <section id="results" class="results hidden">
+        <h2>Your Daily Macro Targets</h2>
+        <div class="macro-grid">
+          <div class="macro-card">
+            <h3>Calories</h3>
+            <p class="macro-value" id="calorieResult">-</p>
+            <p class="macro-unit">kcal/day</p>
+          </div>
+          <div class="macro-card">
+            <h3>Protein</h3>
+            <p class="macro-value" id="proteinResult">-</p>
+            <p class="macro-unit">grams/day</p>
+          </div>
+          <div class="macro-card">
+            <h3>Carbs</h3>
+            <p class="macro-value" id="carbsResult">-</p>
+            <p class="macro-unit">grams/day</p>
+          </div>
+          <div class="macro-card">
+            <h3>Fat</h3>
+            <p class="macro-value" id="fatResult">-</p>
+            <p class="macro-unit">grams/day</p>
+          </div>
+        </div>
+        <div id="adviceBox" class="advice-box hidden">
+          <h3>Nutrition Advice</h3>
+          <p id="adviceText">Your macro summary is ready.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 FoodGorilla Macro Calculator. For informational purposes only.</p>
+    </footer>
+  </div>
+
+  <script>
+    async function appendAccountLinkIfSignedIn() {
+      try {
+        const response = await fetch('/api/me', { credentials: 'same-origin' });
+        if (response.ok) {
+          const nav = document.getElementById('pageNav');
+          const accountLink = document.createElement('a');
+          accountLink.href = '/account';
+          accountLink.className = 'nav-link';
+          accountLink.textContent = 'Manage Account';
+          nav.appendChild(accountLink);
+        }
+      } catch (error) {
+        // no account link if not authenticated
+      }
+    }
+
+    appendAccountLinkIfSignedIn();
+  </script>
+  <script src="js/calculator.js"></script>
+</body>
+</html>
