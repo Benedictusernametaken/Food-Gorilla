@@ -1,0 +1,19 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">Food Gorilla</a>
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link <%= active === 'menu' ? 'active' : '' %>" href="/menu">Menu</a>
+      <% if (isAuthenticated) { %>
+        <a class="nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/dashboard">Dashboard</a>
+      <% } %>
+      <% if (!isAuthenticated || active === 'register' || active === 'login') { %>
+        <a class="nav-link <%= active === 'register' ? 'active' : '' %>" href="/register">Register</a>
+        <a class="nav-link <%= active === 'login' ? 'active' : '' %>" href="/login">Login</a>
+      <% } %>
+      <a class="nav-link <%= active === 'checkout' ? 'active' : '' %>" href="/checkout">Checkout</a>
+      <% if (isAuthenticated) { %>
+        <a class="nav-link" href="/logout">Logout</a>
+      <% } %>
+    </div>
+  </div>
+</nav>

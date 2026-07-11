@@ -20,7 +20,7 @@ services:
       - FLASK_APP=app.main
       - PYTHONPATH=/app
       - FLASK_ENV=development
-      - DATABASE_URL=postgresql://foodgorilla_admin:${POSTGRES_PASSWORD}@database:5432/foodgorilla_db
+      - DATABASE_URL=postgresql://foodgorilla_admin:${POSTGRES_PASSWORD:-foodgorilla_password}@database:5432/foodgorilla_db
     depends_on:
       database:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     environment:
       POSTGRES_USER: foodgorilla_admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodgorilla_password}
       POSTGRES_DB: foodgorilla_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
