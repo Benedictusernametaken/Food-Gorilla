@@ -1,4 +1,6 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
@@ -6,6 +8,13 @@ const PORT = 3000;
 // Docker's internal network. Never hardcode this — it changes between
 // local/test/prod the same way DATABASE_URL does on the backend.
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:5000';
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+
+app.use(require('./auth'));
 
 app.get('/', async (req, res) => {
     try {
