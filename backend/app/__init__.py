@@ -7,3 +7,4 @@ from . import auth  # noqa: F401
 from . import vendor_auth  # noqa: F401
 from . import vendor_meals  # noqa: F401
 from . import macro_profile  # noqa: F401
+from . import menu  # noqa: F401
