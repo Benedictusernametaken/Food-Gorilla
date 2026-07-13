@@ -89,6 +89,7 @@ function renderMealCard(meal) {
         <span>${meal.carbs}g carbs</span>
         <span>${meal.fats}g fats</span>
       </div>
+      <p style="margin-top: 12px;"><a href="/meals/${meal.meal_id}/customize">Customize this meal →</a></p>
     </div>`;
 }
 
