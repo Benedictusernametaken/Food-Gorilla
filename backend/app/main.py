@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, send_file
 import psycopg2
 import os
 # Import the shared master app instance from your package folder
@@ -11,6 +11,41 @@ def home():
         "status": "online",
         "message": "Welcome to the Food Gorilla Backend API!"
     })
+
+# ======================
+# Authentication
+# ======================
+
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    # Implementation for user signup
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+
+    # hash password
+    # insert into users table
+
+    return jsonify({"message": "User created successfully"})
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    #Implementation for user login
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+
+    # Verify user credentials
+
+    return jsonify({"message": "User logged in successfully"})
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    # Implementation for user logout
+    return jsonify({"message": "User logged out successfully"})
+
 
 
 @app.route('/health-check')
