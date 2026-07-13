@@ -9,3 +9,4 @@ from . import vendor_meals  # noqa: F401
 from . import macro_profile  # noqa: F401
 from . import menu  # noqa: F401
 from . import meal_builder  # noqa: F401
+from . import cart  # noqa: F401
