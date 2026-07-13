@@ -16,6 +16,7 @@ app.use('/css', express.static(path.join(__dirname, 'public/css')));
 
 app.use(require('./auth'));
 app.use(require('./vendor_auth'));
+app.use(require('./vendor_meals'));
 
 app.get('/', async (req, res) => {
     try {
