@@ -235,7 +235,7 @@ router.get('/profile', (req, res) => {
         <div>
           <h1>Welcome back, ${escapeHtml(payload.username)}!</h1>
           <p><a href="/macros">Calculate your daily macro targets →</a></p>
-          <p>The full dashboard lands with Story 4.</p>
+          <p><a href="/dashboard">View your daily fitness dashboard →</a></p>
         </div>
       </div>
     </div>
