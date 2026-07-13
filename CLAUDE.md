@@ -157,7 +157,7 @@ Reasoning:
 **Progress marker** (update this line as stories merge, so a fresh
 session or a different Claude Code instance knows where to resume
 without being re-told):
-`Completed: Story 7, Story 8, Story 5, Story 1, Story 2, Story 3, Story 10, Story 9, Story 11, Next: Story 4`
+`Completed: Story 7, Story 8, Story 5, Story 1, Story 2, Story 3, Story 10, Story 9, Story 11, Story 4, Next: Story 6`
 
 
 `docker-compose.yml`, `docker-compose.override.yml`,
