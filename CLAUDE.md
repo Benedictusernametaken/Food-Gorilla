@@ -131,7 +131,35 @@ flight. This is slower than batching everything into one big branch, but
 matches the CI/CD pipeline this project already has — use it as
 designed rather than working around it.
 
-## Infra files — off-limits without explicit instruction
+## Build order
+Numeric story order in the backlog is NOT the build order — dependencies
+matter more. Build in this sequence:
+
+**7, 8 → 5 → 1 → 2 → 3 → 10 → 9 → 11 → 4 → 6**
+
+Reasoning:
+- 7/8 (auth) first — everything else needs a real user to act on.
+- 5 (vendor portal) next — creates real meals/vendor data; building
+  browsing/customization against only `init.sql` seed data would mean
+  redoing it once real vendor data exists.
+- 1 (macro profile) — independent of everything except auth, fits
+  anywhere after 7/8. Placed here as a natural break before the
+  order-flow chain starts.
+- 2 (menu search) → 3 (meal-builder) — need real meal data from 5.
+- 10 (cart) — needs a customized meal object from 3.
+- 9 (checkout) — needs something in the cart from 10.
+- 11 (daily log) — needs a completed order from 9.
+- 4 (dashboard) — needs both real logged data (11) and a target to
+  compare against (1).
+- 6 (subscriptions) last — most complex, sits on top of orders/meals
+  already working end-to-end.
+
+**Progress marker** (update this line as stories merge, so a fresh
+session or a different Claude Code instance knows where to resume
+without being re-told):
+`Completed: Story 7, Story 8. Next: Story 5.`
+
+
 `docker-compose.yml`, `docker-compose.override.yml`,
 `docker-compose.dev.yml`, `Jenkinsfile`, `jenkins/`, `ansible/`,
 `.devcontainer/devcontainer.json` took a lot of hard-won debugging to
