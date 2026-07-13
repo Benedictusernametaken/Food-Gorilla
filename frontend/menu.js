@@ -60,7 +60,12 @@ const MENU_STYLES = `<style>
 function computeBounds(meals, key) {
     if (meals.length === 0) return { min: 0, max: 100 };
     const values = meals.map((m) => m[key]);
-    return { min: Math.min(...values), max: Math.max(...values, 0) };
+    const min = Math.min(...values);
+    const max = Math.max(...values, 0);
+    // A single meal (or several tied on this macro) would otherwise produce
+    // min === max, which renders as a range input with no draggable travel.
+    if (min === max) return { min: Math.max(0, min - 10), max: max + 10 };
+    return { min, max };
 }
 
 function renderSlider({ id, label, min, max, isMin }) {
