@@ -42,7 +42,11 @@ CREATE TABLE vendors (
     vendor_id SERIAL PRIMARY KEY,
     restaurant_name VARCHAR(100) NOT NULL,
     cuisine_type VARCHAR(50),
-    is_verified BOOLEAN DEFAULT FALSE
+    is_verified BOOLEAN DEFAULT FALSE,
+    -- Feature 8: Vendor Account Management (auth)
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Feature 2: Smart Nutritional Search & Filter (base macro columns live here)
@@ -156,8 +160,13 @@ CREATE TABLE subscription_schedule (
 -- assigns SERIAL values in.)
 -- ====================================================
 
-INSERT INTO vendors (restaurant_name, cuisine_type, is_verified)
-VALUES ('Lean & Mean Kitchen', 'Healthy Western', true);
+-- Seed password is 'vendor123456' (bcrypt hash below), for local/dev use only.
+INSERT INTO vendors (restaurant_name, cuisine_type, is_verified, email, password_hash)
+VALUES (
+    'Lean & Mean Kitchen', 'Healthy Western', true,
+    'contact@leanmeankitchen.example',
+    '$2b$12$o.uROQPZaL9uMfv42oBfnu2xWUTnMK6uLifI6eF0fN6eXdrIKbb/O'
+);
 
 INSERT INTO meals (vendor_id, name, description, base_price, base_calories, base_protein, base_carbs, base_fats)
 VALUES (

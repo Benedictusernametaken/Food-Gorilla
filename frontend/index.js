@@ -15,6 +15,7 @@ app.use(cookieParser());
 app.use('/css', express.static(path.join(__dirname, 'public/css')));
 
 app.use(require('./auth'));
+app.use(require('./vendor_auth'));
 
 app.get('/', async (req, res) => {
     try {
