@@ -59,7 +59,9 @@ CREATE TABLE meals (
     base_calories INT NOT NULL,
     base_protein INT NOT NULL,
     base_carbs INT NOT NULL,
-    base_fats INT NOT NULL
+    base_fats INT NOT NULL,
+    -- Feature 5: Vendor Management Portal (availability toggle)
+    is_available BOOLEAN DEFAULT TRUE
 );
 
 -- Feature 3: Custom Meal-Builder CRUD

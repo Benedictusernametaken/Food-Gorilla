@@ -177,7 +177,7 @@ router.get('/vendor/portal', (req, res) => {
       <div class="account-hero">
         <div>
           <h1>Welcome back, ${escapeHtml(payload.restaurant_name)}!</h1>
-          <p>This is a placeholder vendor portal for Story 8 — full menu CRUD management lands with Story 5.</p>
+          <p><a href="/vendor/meals">Manage your menu items →</a></p>
         </div>
       </div>
     </div>
