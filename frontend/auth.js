@@ -234,7 +234,8 @@ router.get('/profile', (req, res) => {
       <div class="account-hero">
         <div>
           <h1>Welcome back, ${escapeHtml(payload.username)}!</h1>
-          <p>This is a placeholder profile page for Story 7 — the full dashboard lands with Story 4.</p>
+          <p><a href="/macros">Calculate your daily macro targets →</a></p>
+          <p>The full dashboard lands with Story 4.</p>
         </div>
       </div>
     </div>
