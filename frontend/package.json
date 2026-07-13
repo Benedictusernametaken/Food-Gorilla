@@ -7,7 +7,6 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "ejs": "^3.1.10",
     "express": "^4.19.2"
   }
 }
