@@ -15,6 +15,7 @@ app.use(require('./vendor_meals'));
 app.use(require('./macro_calculator'));
 app.use(require('./menu'));
 app.use(require('./meal_builder'));
+app.use(require('./dashboard'));
 
 app.listen(PORT, () => {
     console.log(`Frontend UI server running on http://localhost:${PORT}`);
