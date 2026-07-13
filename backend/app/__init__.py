@@ -12,3 +12,5 @@ from . import meal_builder  # noqa: F401
 
 from . import cart  # noqa: F401
 from . import checkout  # noqa: F401
+
+from . import daily_log  # noqa: F401

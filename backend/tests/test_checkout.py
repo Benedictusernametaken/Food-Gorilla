@@ -60,6 +60,7 @@ def test_checkout_success(mock_get_conn, client):
         fetchone_side_effect=[
             (55,),               # pending order lookup
             CONFIRMED_ORDER_ROW,  # fetch_order_detail: order row
+            None,                 # record_daily_log: no existing row for today
         ],
         fetchall_side_effect=[
             [(1000, 1, "Chicken Bowl", 2, 25.0, 1040, 90, 100, 20)],  # items
@@ -78,6 +79,39 @@ def test_checkout_success(mock_get_conn, client):
     cursor.execute.assert_any_call(
         "UPDATE orders SET order_status = 'confirmed' WHERE order_id = %s",
         (55,),
+    )
+    cursor.execute.assert_any_call(
+        "INSERT INTO daily_logs (user_id, log_date, total_calories_consumed, "
+        "total_protein_consumed, total_carbs_consumed, total_fats_consumed) "
+        "VALUES (%s, CURRENT_DATE, %s, %s, %s, %s)",
+        (1, 1040, 90, 100, 20),
+    )
+
+
+@patch('app.checkout.get_db_connection')
+def test_checkout_adds_onto_existing_daily_log(mock_get_conn, client):
+    connection, cursor = make_mock_connection(
+        fetchone_side_effect=[
+            (55,),               # pending order lookup
+            CONFIRMED_ORDER_ROW,  # fetch_order_detail: order row
+            (900,),               # record_daily_log: existing log_id for today
+        ],
+        fetchall_side_effect=[
+            [(1000, 1, "Chicken Bowl", 2, 25.0, 1040, 90, 100, 20)],  # items
+            [],  # ingredients for that item
+        ],
+    )
+    mock_get_conn.return_value = connection
+
+    resp = client.post('/checkout', headers=auth_header(user_token()))
+
+    assert resp.status_code == 200
+    cursor.execute.assert_any_call(
+        "UPDATE daily_logs SET total_calories_consumed = total_calories_consumed + %s, "
+        "total_protein_consumed = total_protein_consumed + %s, "
+        "total_carbs_consumed = total_carbs_consumed + %s, "
+        "total_fats_consumed = total_fats_consumed + %s WHERE log_id = %s",
+        (1040, 90, 100, 20, 900),
     )
 
 

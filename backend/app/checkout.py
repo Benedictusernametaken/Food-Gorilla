@@ -106,6 +106,32 @@ def fetch_order_detail(cursor, order_id):
     }
 
 
+def record_daily_log(cursor, user_id, calories, protein, carbs, fats):
+    """Adds a completed order's macros onto today's daily_logs row for this
+    user (Story 11 CoS: processing an order updates the daily nutritional
+    log), creating the row if today doesn't have one yet."""
+    cursor.execute(
+        "SELECT log_id FROM daily_logs WHERE user_id = %s AND log_date = CURRENT_DATE",
+        (user_id,),
+    )
+    existing = cursor.fetchone()
+    if existing:
+        cursor.execute(
+            "UPDATE daily_logs SET total_calories_consumed = total_calories_consumed + %s, "
+            "total_protein_consumed = total_protein_consumed + %s, "
+            "total_carbs_consumed = total_carbs_consumed + %s, "
+            "total_fats_consumed = total_fats_consumed + %s WHERE log_id = %s",
+            (calories, protein, carbs, fats, existing[0]),
+        )
+    else:
+        cursor.execute(
+            "INSERT INTO daily_logs (user_id, log_date, total_calories_consumed, "
+            "total_protein_consumed, total_carbs_consumed, total_fats_consumed) "
+            "VALUES (%s, CURRENT_DATE, %s, %s, %s, %s)",
+            (user_id, calories, protein, carbs, fats),
+        )
+
+
 @app.route('/checkout', methods=['POST'])
 def checkout():
     user_id = get_authenticated_user()
@@ -132,6 +158,10 @@ def checkout():
             (order_id,),
         )
         order = fetch_order_detail(cursor, order_id)
+        record_daily_log(
+            cursor, user_id, order["total_calories"], order["total_protein"],
+            order["total_carbs"], order["total_fats"],
+        )
         connection.commit()
         cursor.close()
     except Exception as e:
