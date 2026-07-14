@@ -143,7 +143,10 @@ router.get('/cart', async (req, res) => {
       <div class="account-hero">
         <div>
           <h1>Your Cart</h1>
-          <p>Your cart is empty. <a href="/">Browse the menu →</a></p>
+          <p>Your cart is empty.</p>
+          <div class="hero-actions">
+            <a href="/">Browse the menu →</a>
+          </div>
         </div>
       </div>`;
         } else {

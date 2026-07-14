@@ -190,14 +190,14 @@ router.get('/meals/:id/customize', async (req, res) => {
           });
           const data = await res.json();
           if (res.status === 401) {
-            confirmationEl.innerHTML = '<div class="auth-message error">Please <a href="/login">log in</a> to add items to your cart.</div>';
+            confirmationEl.innerHTML = '<div class="auth-message error">Please <a class="nav-link" href="/login">Log In</a> to add items to your cart.</div>';
             return;
           }
           if (!res.ok) {
             confirmationEl.innerHTML = '<div class="auth-message error">' + (data.error || 'Could not add this item to your cart.') + '</div>';
             return;
           }
-          confirmationEl.innerHTML = '<div class="auth-message success">Added to cart — <a href="/cart">view your cart →</a></div>';
+          confirmationEl.innerHTML = '<div class="auth-message success">Added to cart — <a class="nav-link" href="/cart">View Your Cart →</a></div>';
         } catch (err) {
           confirmationEl.innerHTML = '<div class="auth-message error">Could not reach the backend: ' + err.message + '</div>';
         }
