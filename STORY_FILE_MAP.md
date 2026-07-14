@@ -53,12 +53,19 @@ so customer and vendor sessions never collide.
 ### Story 5 — Vendor Management Portal
 | Layer | File | Role |
 |---|---|---|
-| Backend | `backend/app/vendor_meals.py` | CRUD on a vendor's own meals: list/create/get/update/delete, plus an availability toggle. |
-| Frontend | `frontend/vendor_meals.js` | `/vendor/meals` (list + create) and `/vendor/meals/:id/edit`. |
+| Backend | `backend/app/vendor_meals.py` | CRUD on a vendor's own meals: list/create/get/update/delete, plus an availability toggle. Also owns `GET/POST /vendor/ingredients` (the shared ingredient catalog) and writes a meal's `meal_ingredients` recipe on create/update. |
+| Frontend | `frontend/vendor_meals.js` | `/vendor/meals` (list + create) and `/vendor/meals/:id/edit`. The meal form includes a per-ingredient checkbox + default-quantity picker, plus a small "Add a New Ingredient" form. |
 | DB | `meals`, `ingredients`, `meal_ingredients` | |
 
 Requires a valid `fg_vendor_token` (Story 8) and is what actually
-populates the `meals` table that Stories 2/3 read from.
+populates the `meals` table that Stories 2/3 read from. Originally this
+file only wrote the `meals` row itself, so vendor-created meals had no
+`meal_ingredients` rows and showed no customization options on Story 3's
+page — it now also lets a vendor pick from (or add to) the shared
+`ingredients` catalog and set default quantities, so vendor-authored
+meals are customizable the same way seeded meals are. `ingredients` has
+no per-vendor scoping in the schema, so an ingredient any vendor adds is
+selectable by every other vendor's meals too.
 
 ### Story 1 — User Profile & Macro Calculator
 | Layer | File | Role |
@@ -91,6 +98,9 @@ Story 10 (cart), and Story 8 (vendor portal).
 
 This page doesn't persist anything itself — "Add to Cart" is a
 client-side `fetch('/cart/items', ...)` call into Story 10's endpoint.
+The `meal_ingredients`/`ingredients` rows it reads are now authored
+either by the original seed data or by a vendor through Story 5's
+ingredient picker — this file itself is unchanged either way.
 
 ### Story 10 — Cart Management
 | Layer | File | Role |
@@ -123,22 +133,30 @@ a gap if a future "log history" page is wanted.
 ### Story 4 — Daily Fitness Tracking Dashboard
 | Layer | File | Role |
 |---|---|---|
-| Backend | `backend/app/dashboard.py` | `GET /dashboard` — joins today's `daily_logs` row against the user's saved `macro_profiles` target and flags any macro that's been exceeded. |
-| Frontend | `frontend/dashboard.js` | `/dashboard` — progress bars per macro, red/over-target state. Shows a "set your targets" prompt (→ Story 1) if no profile exists yet. |
+| Backend | `backend/app/dashboard.py` | `GET /dashboard` — joins today's `daily_logs` row against the user's saved `macro_profiles` target and flags any macro that's been exceeded. `GET /dashboard/weekly` — trailing 7-day view from `daily_logs` vs. the calorie target (average calories/day, days on track, times exceeded). `POST /dashboard/reset` — zeroes today's `daily_logs` row, standing in for a real day rollover the app doesn't otherwise simulate. |
+| Frontend | `frontend/dashboard.js` | `/dashboard` — progress bars per macro, red/over-target state, plus an alerts list (exceeded/approaching-target). Shows a "set your targets" prompt (→ Story 1) if no profile exists yet. Adds a "Reset Today's Log" button, weekly summary stat tiles, and two Chart.js visualizations (today's protein/carbs/fats split as a pie chart, the week's calories as a bar chart). |
 | DB | `daily_logs`, `macro_profiles` | |
 
 This is the one page that visibly ties Story 1 (target), Story 9
-(what got logged), and Story 11 (the log table) together.
+(what got logged), and Story 11 (the log table) together. The weekly
+summary and charts only judge "on track" vs. "exceeded" by calories,
+not all four macros — matching how the reference mockup in
+`dashboard-reference/` modeled it, even though `daily_logs` tracks all
+four. Chart.js is loaded from a CDN (`chart.js@4.4.4`) — the only
+external JS library referenced by the frontend so far.
 
 ### Story 6 — Scheduled Subscription Engine
 | Layer | File | Role |
 |---|---|---|
-| Backend | `backend/app/subscriptions.py` | Create/list/get a weekly meal plan, modify/cancel individual scheduled slots, with day-of-week/time-slot occurrence math. |
-| Frontend | `frontend/subscriptions.js` | `/subscriptions` — weekly schedule view and edit UI. |
+| Backend | `backend/app/subscriptions.py` | Create/list/get a weekly meal plan, modify/cancel individual scheduled slots, with day-of-week/time-slot occurrence math. `DELETE /subscriptions/<id>` cancels the whole plan (soft-cancel via `status = 'cancelled'`); once cancelled, the per-slot modify/cancel routes reject further edits on it. |
+| Frontend | `frontend/subscriptions.js` | `/subscriptions` — weekly schedule view and edit UI, plus a "Cancel Plan" button per plan card. Once a plan is cancelled its per-day Update/Cancel controls are hidden instead of staying live. |
 | DB | `subscriptions`, `subscription_schedule` | |
 
 Independent of the cart/checkout/order flow — it schedules meals
 against a day/time slot rather than an immediate `orders` row.
+Originally a subscription could only be stopped by cancelling every
+individual scheduled slot one at a time — there was no way to cancel
+the whole plan in one action.
 
 ## One-page cheat sheet
 
