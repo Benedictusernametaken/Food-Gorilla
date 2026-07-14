@@ -95,7 +95,22 @@ const SUBSCRIPTIONS_STYLES = `<style>
   .sub-schedule-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .sub-schedule-actions form { display: flex; gap: 6px; align-items: center; }
   .sub-schedule-actions select { padding: 6px 8px; font-size: 0.85rem; }
+  .sub-schedule-actions button,
+  .sub-card-header-right button {
+    background: #f56a28;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+  .sub-schedule-actions button:hover,
+  .sub-card-header-right button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  .sub-schedule-actions button.delete-profile,
+  .sub-card-header-right button.delete-profile { background: #c76326; }
   .sub-schedule-actions button { padding: 6px 12px; font-size: 0.85rem; }
+  .sub-card-header-right button { padding: 10px 14px; font-size: 0.95rem; }
 </style>`;
 
 function renderMealOptions(meals, selectedId) {

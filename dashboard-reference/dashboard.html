@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Food Gorilla Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+.trend-bar {
+  height: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f1f1f1;
+}
+
+.trend-bar-fill {
+  height: 100%;
+}
+
+.progress-label {
+  min-width: 100px;
+}
+
+.dashboard-alerts .alert {
+  margin-bottom: 10px;
+}
+
+body {
+  background-color: #f8f9fa;
+}
+</style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+
+    <a class="navbar-brand" href="dashboard.html">
+      🦍 Food Gorilla
+    </a>
+
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link active" href="dashboard.html">
+        Dashboard
+      </a>
+
+      <a class="nav-link" href="chart.html">
+        Analytics
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+<div class="container py-4">
+
+  <h1 class="mb-4">Fitness Dashboard</h1>
+
+  <div class="row">
+
+    <!-- Daily Dashboard -->
+    <div class="col-lg-6 mb-4">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <h3 class="h5">Today's Macro Progress</h3>
+
+          <div id="progressContainer"></div>
+
+          <hr>
+
+          <h4 class="h6">Alerts</h4>
+
+          <div id="alertContainer"></div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Weekly Dashboard -->
+    <div class="col-lg-6 mb-4">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <h3 class="h5">Weekly Nutrition Summary</h3>
+
+          <div id="summaryContainer"></div>
+
+          <hr>
+
+          <div id="weeklyContainer"></div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const dashboard = {
+
+  progress: [
+
+    {
+      label: "Calories",
+      consumed: 1800,
+      target: 2200,
+      percent: 82,
+      color: "warning"
+    },
+
+    {
+      label: "Protein",
+      consumed: 165,
+      target: 150,
+      percent: 100,
+      color: "danger"
+    },
+
+    {
+      label: "Carbs",
+      consumed: 190,
+      target: 250,
+      percent: 76,
+      color: "warning"
+    },
+
+    {
+      label: "Fats",
+      consumed: 55,
+      target: 80,
+      percent: 69,
+      color: "success"
+    }
+
+  ],
+
+  summary: {
+    average_calories_per_day: 2100,
+    days_on_track: 5,
+    times_exceeded: 2
+  },
+
+  weekly: [
+
+    {
+      date: "Mon",
+      calories: 2000,
+      percent_of_target: 91,
+      exceeded: false
+    },
+
+    {
+      date: "Tue",
+      calories: 2400,
+      percent_of_target: 100,
+      exceeded: true
+    },
+
+    {
+      date: "Wed",
+      calories: 1800,
+      percent_of_target: 82,
+      exceeded: false
+    },
+
+    {
+      date: "Thu",
+      calories: 2200,
+      percent_of_target: 100,
+      exceeded: false
+    },
+
+    {
+      date: "Fri",
+      calories: 2500,
+      percent_of_target: 100,
+      exceeded: true
+    },
+
+    {
+      date: "Sat",
+      calories: 3000,
+      percent_of_target: 100,
+      exceeded: true
+    },
+
+    {
+      date: "Sun",
+      calories: 1500,
+      percent_of_target: 70,
+      exceeded: false
+    },
+
+  ]
+};
+
+// ----------------
+// Progress Bars
+// ----------------
+
+const progressContainer =
+document.getElementById("progressContainer");
+
+dashboard.progress.forEach(item => {
+
+  progressContainer.innerHTML += `
+  
+  <div class="d-flex mb-2">
+    <span class="progress-label">
+      <strong>${item.label}</strong>
+    </span>
+
+    <span class="ms-auto">
+      ${item.consumed} / ${item.target}
+    </span>
+  </div>
+
+  <div class="progress mb-3" style="height:24px">
+
+    <div class="progress-bar bg-${item.color}"
+      style="width:${item.percent}%">
+
+      ${item.percent}%
+
+    </div>
+
+  </div>
+  
+  `;
+});
+
+// ----------------
+// Alerts
+// ----------------
+
+const alertContainer =
+document.getElementById("alertContainer");
+
+dashboard.progress.forEach(item => {
+
+  if(item.consumed > item.target){
+
+    alertContainer.innerHTML += `
+      <div class="alert alert-danger">
+        <i class="bi bi-x-circle-fill"></i>
+        <strong>${item.label}</strong>
+        exceeded target by
+        ${item.consumed - item.target}
+      </div>
+    `;
+
+  } else if(item.percent >= 75){
+
+    alertContainer.innerHTML += `
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>${item.label}</strong>
+        is approaching target.
+      </div>
+    `;
+  }
+});
+
+// ----------------
+// Summary
+// ----------------
+
+document.getElementById("summaryContainer").innerHTML = `
+
+<p>
+<strong>Average Calories/Day:</strong>
+${dashboard.summary.average_calories_per_day}
+</p>
+
+<p>
+<strong>Days on Track:</strong>
+${dashboard.summary.days_on_track} / 7
+</p>
+
+<p>
+<strong>Times Exceeded:</strong>
+${dashboard.summary.times_exceeded}
+</p>
+
+`;
+
+// ----------------
+// Weekly Trend
+// ----------------
+
+const weeklyContainer =
+document.getElementById("weeklyContainer");
+
+dashboard.weekly.forEach(day => {
+
+  weeklyContainer.innerHTML += `
+
+  <div class="mb-3">
+
+    <div class="d-flex justify-content-between">
+
+      <span>${day.date}</span>
+
+      <span>${day.calories} kcal</span>
+
+    </div>
+
+    <div class="trend-bar">
+
+      <div
+        class="trend-bar-fill
+        ${day.exceeded ? 'bg-danger' : 'bg-primary'}"
+
+        style="width:${day.percent_of_target}%">
+
+      </div>
+
+    </div>
+
+  </div>
+
+  `;
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
