@@ -75,7 +75,7 @@ function renderMealRow(meal) {
         <div class="profile-date">Status: ${statusLabel}</div>
       </div>
       <div class="profile-actions">
-        <a href="/vendor/meals/${meal.meal_id}/edit"><button type="button">Edit</button></a>
+        <a class="nav-link" href="/vendor/meals/${meal.meal_id}/edit">Edit</a>
         <form method="POST" action="/vendor/meals/${meal.meal_id}/toggle" style="display:inline">
           <button type="submit">${toggleLabel}</button>
         </form>
