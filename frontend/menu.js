@@ -5,10 +5,27 @@ const router = express.Router();
 // Docker's internal network. Never hardcode this.
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:5000';
 
+// Same cookie Story 7's auth.js sets on login/signup.
+const TOKEN_COOKIE = 'fg_token';
+
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     }[c]));
+}
+
+// Decodes the JWT payload for display purposes only (e.g. showing the
+// logged-in username in the nav). The signature is never checked here —
+// any route that needs to trust the identity re-verifies against the
+// backend instead of relying on this decode.
+function decodeTokenPayload(token) {
+    try {
+        const payloadSegment = token.split('.')[1];
+        const json = Buffer.from(payloadSegment, 'base64url').toString('utf-8');
+        return JSON.parse(json);
+    } catch (err) {
+        return null;
+    }
 }
 
 function pageShell(title, bodyHtml, extraHead = '') {
@@ -55,6 +72,7 @@ const MENU_STYLES = `<style>
     background: #f56a28; color: white; border-radius: 999px; padding: 4px 10px;
     font-size: 0.85rem; font-weight: 600;
   }
+  .menu-top-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0 24px; }
 </style>`;
 
 function computeBounds(meals, key) {
@@ -94,11 +112,14 @@ function renderMealCard(meal) {
         <span>${meal.carbs}g carbs</span>
         <span>${meal.fats}g fats</span>
       </div>
-      <p style="margin-top: 12px;"><a href="/meals/${meal.meal_id}/customize">Customize this meal →</a></p>
+      <div style="margin-top: 12px;"><a class="nav-link" href="/meals/${meal.meal_id}/customize">Customize this meal →</a></div>
     </div>`;
 }
 
 router.get('/', async (req, res) => {
+    const token = req.cookies[TOKEN_COOKIE];
+    const payload = token && decodeTokenPayload(token);
+
     try {
         // Server-side call: this happens inside the Docker network, never in
         // the user's browser, so no CORS setup is needed.
@@ -140,7 +161,14 @@ router.get('/', async (req, res) => {
         <span>Food Gorilla</span>
       </div>
     </div>
-    <p><a href="/login">Log in</a> · <a href="/cart">Your cart</a> · <a href="/vendor/login">Vendor portal</a></p>
+    <div class="menu-top-links">
+      ${payload
+          ? `<a class="nav-link" href="/profile">${escapeHtml(payload.username)}'s Profile</a>
+      <a class="nav-link" href="/logout">Log Out</a>`
+          : `<a class="nav-link" href="/login">Log In</a>`}
+      <a class="nav-link" href="/cart">Your Cart</a>
+      <a class="nav-link" href="/vendor/login">Vendor Portal</a>
+    </div>
     <h1>Find meals that fit your macros</h1>
 
     <div class="filter-panel">

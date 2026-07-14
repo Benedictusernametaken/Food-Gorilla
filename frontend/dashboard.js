@@ -126,7 +126,9 @@ router.get('/dashboard', async (req, res) => {
         <div>
           <h1>Daily Fitness Dashboard</h1>
           <p>You haven't set a macro profile yet, so there's nothing to compare today's intake against.</p>
-          <p><a href="/macros">Set your daily targets →</a></p>
+          <div class="hero-actions">
+            <a href="/macros">Set your daily targets →</a>
+          </div>
         </div>
       </div>`;
         } else {

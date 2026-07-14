@@ -180,7 +180,9 @@ router.get('/vendor/portal', (req, res) => {
       <div class="account-hero">
         <div>
           <h1>Welcome back, ${escapeHtml(payload.restaurant_name)}!</h1>
-          <p><a href="/vendor/meals">Manage your menu items →</a></p>
+          <div class="hero-actions">
+            <a href="/vendor/meals">Manage your menu items →</a>
+          </div>
         </div>
       </div>
     </div>
