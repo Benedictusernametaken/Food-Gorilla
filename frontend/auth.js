@@ -97,7 +97,7 @@ function renderAuthPage({ loginError, signupError, notice } = {}) {
             </form>
             ${loginError ? `<div class="auth-message error">${escapeHtml(loginError)}</div>` : ''}
             <p style="margin-top: 12px; font-size: 0.95rem; color: #555;">
-              Forgot your password? <a href="/reset-request">Reset it here</a>.
+              Forgot your password? <a class="nav-link" href="/reset-request">Reset it here</a>
             </p>
           </section>
         </div>
@@ -127,9 +127,9 @@ function renderResetRequestPage({ error, message, resetLink } = {}) {
           </form>
           ${error ? `<div class="auth-message error">${escapeHtml(error)}</div>` : ''}
           ${message ? `<div class="auth-message success">${escapeHtml(message)}</div>` : ''}
-          ${resetLink ? `<div class="auth-message success">No email service is configured yet, so here's your reset link directly: <a href="${resetLink}">${resetLink}</a></div>` : ''}
+          ${resetLink ? `<div class="auth-message success">No email service is configured yet — <a class="nav-link" href="${resetLink}">Open Reset Link →</a></div>` : ''}
           <p style="margin-top: 12px; font-size: 0.95rem; color: #555;">
-            <a href="/login">Back to login</a>
+            <a class="nav-link" href="/login">Back to login</a>
           </p>
         </section>
       </div>

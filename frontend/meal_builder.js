@@ -90,7 +90,7 @@ router.get('/meals/:id/customize', async (req, res) => {
 
         const body = `
   <div class="builder-page">
-    <p><a href="/">← Back to menu</a></p>
+    <div class="page-nav"><a class="nav-link" href="/">← Back to menu</a></div>
     <h1>${escapeHtml(data.name)}</h1>
     ${data.description ? `<p>${escapeHtml(data.description)}</p>` : ''}
 
