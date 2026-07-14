@@ -104,7 +104,10 @@ router.get('/checkout', async (req, res) => {
           <div class="account-hero">
             <div>
               <h1>Checkout</h1>
-              <p>Your cart is empty — nothing to check out yet. <a href="/">Browse the menu →</a></p>
+              <p>Your cart is empty — nothing to check out yet.</p>
+              <div class="hero-actions">
+                <a href="/">Browse the menu →</a>
+              </div>
             </div>
           </div>
         </div>
@@ -204,8 +207,10 @@ router.post('/checkout', async (req, res) => {
         <div>
           <h1>Order Placed!</h1>
           <p>Order #${data.order_id} confirmed — $${data.total_price.toFixed(2)} total, logged to today's nutrition.</p>
-          <p><a href="/dashboard">View your daily fitness dashboard →</a></p>
-          <p><a href="/">Back to menu →</a></p>
+          <div class="hero-actions">
+            <a href="/dashboard">View your daily fitness dashboard →</a>
+            <a href="/">Back to menu →</a>
+          </div>
         </div>
       </div>
     </div>
