@@ -237,13 +237,10 @@ router.get('/profile', (req, res) => {
       <div class="account-hero">
         <div>
           <h1>Welcome back, ${escapeHtml(payload.username)}!</h1>
-          <div class="hero-actions">
-            <a href="/">Browse the menu →</a>
-            <a href="/macros">Calculate your daily macro targets →</a>
-            <a href="/dashboard">View your daily fitness dashboard →</a>
-            <a href="/subscriptions">Manage your weekly meal plan →</a>
-            <a href="/cart">View your cart →</a>
-          </div>
+          <p><a href="/macros">Calculate your daily macro targets →</a></p>
+          <p><a href="/dashboard">View your daily fitness dashboard →</a></p>
+          <p><a href="/subscriptions">Manage your weekly meal plan →</a></p>
+          <p><a href="/cart">View your cart →</a></p>
         </div>
       </div>
     </div>

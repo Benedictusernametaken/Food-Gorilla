@@ -161,14 +161,7 @@ router.get('/', async (req, res) => {
         <span>Food Gorilla</span>
       </div>
     </div>
-    <div class="menu-top-links">
-      ${payload
-          ? `<a class="nav-link" href="/profile">${escapeHtml(payload.username)}'s Profile</a>
-      <a class="nav-link" href="/logout">Log Out</a>`
-          : `<a class="nav-link" href="/login">Log In</a>`}
-      <a class="nav-link" href="/cart">Your Cart</a>
-      <a class="nav-link" href="/vendor/login">Vendor Portal</a>
-    </div>
+    <p><a href="/login">Log in</a> · <a href="/cart">Your cart</a> · <a href="/vendor/login">Vendor portal</a></p>
     <h1>Find meals that fit your macros</h1>
 
     <div class="filter-panel">
