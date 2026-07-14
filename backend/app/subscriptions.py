@@ -282,10 +282,54 @@ def get_subscription(subscription_id):
     return jsonify(subscriptions[0]), 200
 
 
+def fetch_owned_subscription(cursor, user_id, subscription_id):
+    cursor.execute(
+        "SELECT subscription_id, status FROM subscriptions "
+        "WHERE subscription_id = %s AND user_id = %s",
+        (subscription_id, user_id),
+    )
+    return cursor.fetchone()
+
+
+@app.route('/subscriptions/<int:subscription_id>', methods=['DELETE'])
+def cancel_subscription(subscription_id):
+    user_id = get_authenticated_user()
+    if not user_id:
+        return jsonify({"error": "authentication required"}), 401
+
+    connection = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        row = fetch_owned_subscription(cursor, user_id, subscription_id)
+        if not row:
+            return jsonify({"error": "subscription not found"}), 404
+
+        _, status = row
+        if status == "cancelled":
+            return jsonify({"error": "this subscription is already cancelled"}), 409
+
+        cursor.execute(
+            "UPDATE subscriptions SET status = 'cancelled' WHERE subscription_id = %s",
+            (subscription_id,),
+        )
+        connection.commit()
+        cursor.close()
+    except Exception as e:
+        return jsonify({"error": f"failed to cancel subscription: {str(e)}"}), 500
+    finally:
+        if connection:
+            connection.close()
+
+    return jsonify({"message": "subscription cancelled", "subscription_id": subscription_id}), 200
+
+
 def fetch_owned_schedule_entry(cursor, user_id, subscription_id, schedule_id):
     cursor.execute(
         "SELECT subscription_schedule.schedule_id, subscription_schedule.delivery_day_of_week, "
-        "subscription_schedule.delivery_time_slot, subscription_schedule.meal_id "
+        "subscription_schedule.delivery_time_slot, subscription_schedule.meal_id, "
+        "subscriptions.status "
         "FROM subscription_schedule JOIN subscriptions "
         "ON subscription_schedule.subscription_id = subscriptions.subscription_id "
         "WHERE subscription_schedule.schedule_id = %s "
@@ -327,7 +371,9 @@ def modify_scheduled_meal(subscription_id, schedule_id):
         if not row:
             return jsonify({"error": "scheduled meal not found"}), 404
 
-        _, day_of_week, current_slot, current_meal_id = row
+        _, day_of_week, current_slot, current_meal_id, sub_status = row
+        if sub_status == "cancelled":
+            return jsonify({"error": "this subscription has been cancelled"}), 409
         if not is_editable(day_of_week, current_slot, current_time()):
             return jsonify({"error": "the modification window for this delivery has closed"}), 409
 
@@ -375,7 +421,9 @@ def cancel_scheduled_meal(subscription_id, schedule_id):
         if not row:
             return jsonify({"error": "scheduled meal not found"}), 404
 
-        _, day_of_week, current_slot, _ = row
+        _, day_of_week, current_slot, _, sub_status = row
+        if sub_status == "cancelled":
+            return jsonify({"error": "this subscription has been cancelled"}), 409
         if not is_editable(day_of_week, current_slot, current_time()):
             return jsonify({"error": "the cancellation window for this delivery has closed"}), 409
 
