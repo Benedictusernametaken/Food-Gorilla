@@ -183,19 +183,21 @@ router.get('/meals/:id/customize', async (req, res) => {
 
         const confirmationEl = document.getElementById('cartConfirmation');
         try {
-          const res = await fetch('/meals/' + mealId + '/customize/confirm', {
+          const res = await fetch('/cart/items', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ingredients }),
+            body: JSON.stringify({ meal_id: mealId, ingredients }),
           });
           const data = await res.json();
-          if (!res.ok) {
-            confirmationEl.innerHTML = '<div class="auth-message error">' + (data.error || 'Could not validate this item.') + '</div>';
+          if (res.status === 401) {
+            confirmationEl.innerHTML = '<div class="auth-message error">Please <a href="/login">log in</a> to add items to your cart.</div>';
             return;
           }
-          confirmationEl.innerHTML = '<div class="auth-message success">'
-            + data.name + ' ready — $' + data.total_price.toFixed(2) + ', ' + data.total_calories + ' kcal.'
-            + ' Full cart management lands with Story 10; nothing is saved yet.</div>';
+          if (!res.ok) {
+            confirmationEl.innerHTML = '<div class="auth-message error">' + (data.error || 'Could not add this item to your cart.') + '</div>';
+            return;
+          }
+          confirmationEl.innerHTML = '<div class="auth-message success">Added to cart — <a href="/cart">view your cart →</a></div>';
         } catch (err) {
           confirmationEl.innerHTML = '<div class="auth-message error">Could not reach the backend: ' + err.message + '</div>';
         }
@@ -206,20 +208,6 @@ router.get('/meals/:id/customize', async (req, res) => {
         res.send(pageShell(`Customize ${data.name}`, body, BUILDER_STYLES));
     } catch (err) {
         res.status(502).send(pageShell('Customize Meal', `<p>Could not reach the backend: ${escapeHtml(err.message)}</p>`));
-    }
-});
-
-router.post('/meals/:id/customize/confirm', async (req, res) => {
-    try {
-        const backendRes = await fetch(`${BACKEND_URL}/meals/${req.params.id}/customize`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ingredients: req.body.ingredients || {} }),
-        });
-        const data = await backendRes.json();
-        res.status(backendRes.status).json(data);
-    } catch (err) {
-        res.status(502).json({ error: `Could not reach the backend: ${err.message}` });
     }
 });
 

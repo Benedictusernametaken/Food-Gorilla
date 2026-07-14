@@ -48,6 +48,9 @@ function renderVendorAuthPage({ loginError, signupError, notice } = {}) {
     const body = `
   <div class="auth-shell">
     <div class="auth-card auth-production-card">
+      <div class="page-nav">
+        <a class="nav-link" href="/">← Back to Home</a>
+      </div>
       <div class="top-brand">
         <div class="logo-mark">
           <span class="logo-icon">🦍</span>
