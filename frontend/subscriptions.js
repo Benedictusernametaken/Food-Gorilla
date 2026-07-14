@@ -85,6 +85,7 @@ const SUBSCRIPTIONS_STYLES = `<style>
   .sub-card { border: 1px solid #f3ceb3; background: #fff4ea; border-radius: 18px; padding: 20px 22px; margin-bottom: 20px; }
   .sub-card-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .sub-card-header h3 { color: #4b371f; }
+  .sub-card-header-right { display: flex; align-items: center; gap: 12px; }
   .sub-status { font-size: 0.85rem; font-weight: 700; color: #a95c24; text-transform: uppercase; }
   .sub-totals { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
   .sub-totals span { background: #f56a28; color: white; border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; font-weight: 600; }
@@ -134,13 +135,10 @@ function renderPlannerForm(meals) {
       </form>`;
 }
 
-function renderScheduleRow(subscriptionId, meals, item) {
-    return `
-    <div class="sub-schedule-row">
-      <div class="sub-schedule-meta">
-        <strong>${escapeHtml(item.day_name)}</strong> · ${escapeHtml(item.time_slot)} —
-        ${escapeHtml(item.meal_name)} (${item.calories} kcal, $${item.price.toFixed(2)})
-      </div>
+function renderScheduleRow(subscriptionId, meals, item, locked) {
+    const actionsHtml = locked
+        ? ''
+        : `
       <div class="sub-schedule-actions">
         <form method="POST" action="/subscriptions/${subscriptionId}/schedule/${item.schedule_id}/modify">
           <select name="meal_id">${renderMealOptions(meals, item.meal_id)}</select>
@@ -150,20 +148,35 @@ function renderScheduleRow(subscriptionId, meals, item) {
         <form method="POST" action="/subscriptions/${subscriptionId}/schedule/${item.schedule_id}/cancel">
           <button type="submit" class="delete-profile">Cancel</button>
         </form>
+      </div>`;
+
+    return `
+    <div class="sub-schedule-row">
+      <div class="sub-schedule-meta">
+        <strong>${escapeHtml(item.day_name)}</strong> · ${escapeHtml(item.time_slot)} —
+        ${escapeHtml(item.meal_name)} (${item.calories} kcal, $${item.price.toFixed(2)})
       </div>
+      ${actionsHtml}
     </div>`;
 }
 
 function renderSubscriptionCard(sub, meals) {
+    const locked = sub.status === 'cancelled';
     const scheduleHtml = sub.schedule.length
-        ? sub.schedule.map((item) => renderScheduleRow(sub.subscription_id, meals, item)).join('')
+        ? sub.schedule.map((item) => renderScheduleRow(sub.subscription_id, meals, item, locked)).join('')
         : '<p class="empty-state">No days scheduled on this plan.</p>';
 
     return `
     <div class="sub-card">
       <div class="sub-card-header">
         <h3>${escapeHtml(sub.start_date)} → ${escapeHtml(sub.end_date)}</h3>
-        <span class="sub-status">${escapeHtml(sub.status)}</span>
+        <div class="sub-card-header-right">
+          <span class="sub-status">${escapeHtml(sub.status)}</span>
+          ${locked ? '' : `
+          <form method="POST" action="/subscriptions/${sub.subscription_id}/cancel-plan">
+            <button type="submit" class="delete-profile">Cancel Plan</button>
+          </form>`}
+        </div>
       </div>
       <div class="sub-totals">
         <span>$${sub.total_cost.toFixed(2)} / week</span>
@@ -256,6 +269,26 @@ router.post('/subscriptions', async (req, res) => {
 
         if (!backendRes.ok) {
             return res.redirect('/subscriptions?error=' + encodeURIComponent(data.error || 'Could not create the weekly plan.'));
+        }
+
+        res.redirect('/subscriptions');
+    } catch (err) {
+        res.status(502).send(pageShell('Subscriptions', `<p>Could not reach the backend: ${escapeHtml(err.message)}</p>`));
+    }
+});
+
+router.post('/subscriptions/:id/cancel-plan', async (req, res) => {
+    const token = requireUserToken(req, res);
+    if (!token) return;
+
+    try {
+        const backendRes = await backendFetch(token, `/subscriptions/${req.params.id}`, {
+            method: 'DELETE',
+        });
+        const data = await backendRes.json();
+
+        if (!backendRes.ok) {
+            return res.redirect('/subscriptions?error=' + encodeURIComponent(data.error || 'Could not cancel this plan.'));
         }
 
         res.redirect('/subscriptions');

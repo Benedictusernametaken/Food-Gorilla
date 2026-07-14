@@ -209,8 +209,9 @@ def test_get_subscription_success(mock_get_conn, client):
 # PUT /subscriptions/<id>/schedule/<schedule_id>
 # ---------------------------------------------------------------------------
 
-# schedule_id, delivery_day_of_week, delivery_time_slot, meal_id
-OWNED_ROW = (100, 1, "lunch", 1)
+# schedule_id, delivery_day_of_week, delivery_time_slot, meal_id, subscription_status
+OWNED_ROW = (100, 1, "lunch", 1, "active")
+CANCELLED_OWNED_ROW = (100, 1, "lunch", 1, "cancelled")
 
 # Monday 2026-07-20 08:00 — well before the 10:00 cutoff for a 12:00 lunch slot.
 BEFORE_CUTOFF = datetime.datetime(2026, 7, 20, 8, 0)
@@ -271,6 +272,16 @@ def test_modify_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
     assert resp.status_code == 409
 
 
+@patch('app.subscriptions.get_db_connection')
+def test_modify_scheduled_meal_on_cancelled_subscription(mock_get_conn, client):
+    connection, cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
+    mock_get_conn.return_value = connection
+
+    resp = client.put('/subscriptions/10/schedule/100', headers=auth_header(user_token()), json={"meal_id": 2})
+
+    assert resp.status_code == 409
+
+
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_new_meal_not_found(mock_get_conn, mock_now, client):
@@ -323,5 +334,56 @@ def test_cancel_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
     mock_now.return_value = AFTER_CUTOFF
 
     resp = client.delete('/subscriptions/10/schedule/100', headers=auth_header(user_token()))
+
+    assert resp.status_code == 409
+
+
+@patch('app.subscriptions.get_db_connection')
+def test_cancel_scheduled_meal_on_cancelled_subscription(mock_get_conn, client):
+    connection, cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
+    mock_get_conn.return_value = connection
+
+    resp = client.delete('/subscriptions/10/schedule/100', headers=auth_header(user_token()))
+
+    assert resp.status_code == 409
+
+
+# ---------------------------------------------------------------------------
+# DELETE /subscriptions/<id>
+# ---------------------------------------------------------------------------
+
+def test_cancel_subscription_requires_auth(client):
+    resp = client.delete('/subscriptions/10')
+    assert resp.status_code == 401
+
+
+@patch('app.subscriptions.get_db_connection')
+def test_cancel_subscription_not_found(mock_get_conn, client):
+    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    mock_get_conn.return_value = connection
+
+    resp = client.delete('/subscriptions/999', headers=auth_header(user_token()))
+
+    assert resp.status_code == 404
+
+
+@patch('app.subscriptions.get_db_connection')
+def test_cancel_subscription_success(mock_get_conn, client):
+    connection, cursor = make_mock_connection(fetchone_side_effect=[(10, "active")])
+    mock_get_conn.return_value = connection
+
+    resp = client.delete('/subscriptions/10', headers=auth_header(user_token()))
+
+    assert resp.status_code == 200
+    assert resp.get_json()["subscription_id"] == 10
+    connection.commit.assert_called_once()
+
+
+@patch('app.subscriptions.get_db_connection')
+def test_cancel_subscription_already_cancelled(mock_get_conn, client):
+    connection, cursor = make_mock_connection(fetchone_side_effect=[(10, "cancelled")])
+    mock_get_conn.return_value = connection
+
+    resp = client.delete('/subscriptions/10', headers=auth_header(user_token()))
 
     assert resp.status_code == 409
