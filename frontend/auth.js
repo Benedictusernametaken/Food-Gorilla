@@ -46,6 +46,9 @@ function renderAuthPage({ loginError, signupError, notice } = {}) {
     const body = `
   <div class="auth-shell">
     <div class="auth-card auth-production-card">
+      <div class="page-nav">
+        <a class="nav-link" href="/">← Back to Home</a>
+      </div>
       <div class="top-brand">
         <div class="logo-mark">
           <span class="logo-icon">🦍</span>
@@ -237,6 +240,7 @@ router.get('/profile', (req, res) => {
           <p><a href="/macros">Calculate your daily macro targets →</a></p>
           <p><a href="/dashboard">View your daily fitness dashboard →</a></p>
           <p><a href="/subscriptions">Manage your weekly meal plan →</a></p>
+          <p><a href="/cart">View your cart →</a></p>
         </div>
       </div>
     </div>

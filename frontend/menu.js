@@ -140,7 +140,7 @@ router.get('/', async (req, res) => {
         <span>Food Gorilla</span>
       </div>
     </div>
-    <p><a href="/login">Log in</a> · <a href="/vendor/login">Vendor portal</a></p>
+    <p><a href="/login">Log in</a> · <a href="/cart">Your cart</a> · <a href="/vendor/login">Vendor portal</a></p>
     <h1>Find meals that fit your macros</h1>
 
     <div class="filter-panel">
