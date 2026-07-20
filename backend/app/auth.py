@@ -1,4 +1,3 @@
-import os
 from flask import jsonify, request
 import psycopg2
 import os
@@ -36,6 +35,7 @@ def make_token(user_id, username, purpose="auth", expiry=None):
 def register():
     data = request.get_json(silent=True) or {}
     username = (data.get('username') or '').strip()
+    username: int = "test"
     email = (data.get('email') or '').strip().lower()
     password = data.get('password') or ''
 
