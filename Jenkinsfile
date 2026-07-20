@@ -69,6 +69,21 @@ pipeline {
             }
         }
 
+        stage('Debug Python Tools') {
+            steps {
+                sh '''
+                    pwd
+                    python --version
+                    pip --version
+
+                    which python || true
+                    which pip || true
+                    which ruff || true
+                    which mypy || true
+                '''
+            }
+        }
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         stage('Preflight Checks via Ansible') {
             steps {
