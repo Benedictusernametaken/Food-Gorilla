@@ -62,15 +62,9 @@ pipeline {
             steps {
                 echo '🔎 Running code quality checks (Ruff + mypy)...'
                 sh '''
-
-                    which python || true
-                    which pip || true
-                    which ruff || true
-                    which mypy || true
-                    python --version || true
-                    pip --version || true
-                    ruff --version || true
-                    mypy --version || true
+                    docker compose build backend
+                    docker compose run --rm backend ruff check .
+                    docker compose run --rm backend mypy .
                 '''
             }
         }
