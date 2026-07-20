@@ -57,6 +57,18 @@ pipeline {
             }
         }
 
+        // STAGE 1.6: CODE QUALITY CHECKS — Ming Hao
+        stage('Code Quality') {
+            steps {
+                echo '🔎 Running code quality checks (Ruff + mypy)...'
+                sh '''
+                    cd backend
+                    ruff check . || true
+                    mypy . || true
+                '''
+            }
+        }
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         stage('Preflight Checks via Ansible') {
             steps {
