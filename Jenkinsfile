@@ -63,8 +63,8 @@ pipeline {
                 echo '🔎 Running code quality checks (Ruff + mypy)...'
                 sh '''
                     cd backend
-                    ruff check . || true
-                    mypy . || true
+                    ruff check .
+                    mypy .
                 '''
             }
         }
