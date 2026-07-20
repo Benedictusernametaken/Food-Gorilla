@@ -5,3 +5,4 @@ PyJWT==2.9.0
 pytest==8.3.3
 ruff
 mypy
+types-psycopg2
