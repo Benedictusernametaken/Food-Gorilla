@@ -12,7 +12,6 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret-change-me")
 JWT_ALGORITHM = "HS256"
 TOKEN_EXPIRY_HOURS = 24
 RESET_TOKEN_EXPIRY_MINUTES = 15
-test_number: int = "hello"
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
