@@ -12,6 +12,7 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret-change-me")
 JWT_ALGORITHM = "HS256"
 TOKEN_EXPIRY_HOURS = 24
 RESET_TOKEN_EXPIRY_MINUTES = 15
+test_number: int = "hello"
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -35,7 +36,6 @@ def make_token(user_id, username, purpose="auth", expiry=None):
 def register():
     data = request.get_json(silent=True) or {}
     username = (data.get('username') or '').strip()
-    username: int = "test"
     email = (data.get('email') or '').strip().lower()
     password = data.get('password') or ''
 
