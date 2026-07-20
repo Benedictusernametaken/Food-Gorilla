@@ -1,3 +1,4 @@
+import os
 from flask import jsonify, request
 import psycopg2
 import os
