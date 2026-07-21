@@ -63,8 +63,8 @@ pipeline {
                 echo '🔎 Running code quality checks (Ruff + mypy)...'
                 sh '''
                     docker compose -f docker-compose.yml build backend
-                    docker compose -f docker-compose.yml --rm backend ruff check .
-                    docker compose -f docker-compose.yml --rm backend mypy .
+                    docker compose -f docker-compose.yml run --rm backend ruff check .
+                    docker compose -f docker-compose.yml run --rm backend mypy .
                 '''
             }
         }
