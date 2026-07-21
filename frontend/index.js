@@ -1,37 +1,24 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-
-const { backendRequest } = require('./lib/backend');
-const { pageShell } = require('./views/layout');
-const marketplaceRoutes = require('./routes/marketplace');
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-
 const app = express();
 const PORT = 3000;
 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
 
-app.use(marketplaceRoutes);
-app.use(authRoutes);
-app.use(dashboardRoutes);
-
-// Lightweight system status page, kept from the original health-check demo.
-app.get('/status', async (req, res) => {
-    const { data } = await backendRequest('/health-check');
-    res.send(pageShell({
-        title: 'System Status',
-        bodyHtml: `
-          <h1>System Status</h1>
-          <p>Backend status: ${data ? data.status : 'unreachable'}</p>
-          <p>Database connectivity: ${data ? data.database_connectivity : 'n/a'}</p>
-        `,
-    }));
-});
+app.use(require('./auth'));
+app.use(require('./vendor_auth'));
+app.use(require('./vendor_meals'));
+app.use(require('./macro_calculator'));
+app.use(require('./menu'));
+app.use(require('./meal_builder'));
+app.use(require('./dashboard'));
+app.use(require('./subscriptions'));
+app.use(require('./cart'));
+app.use(require('./checkout'));
 
 app.listen(PORT, () => {
     console.log(`Frontend UI server running on http://localhost:${PORT}`);
