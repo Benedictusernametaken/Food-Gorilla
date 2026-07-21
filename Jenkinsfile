@@ -69,9 +69,10 @@ pipeline {
             }
         }
 
-        stage('Debug Frontend') {
+        stage('Debug Frontend Build') {
             steps {
                 sh '''
+                    docker compose build --no-cache frontend
                     docker compose run --rm frontend cat /app/package.json
                 '''
             }
