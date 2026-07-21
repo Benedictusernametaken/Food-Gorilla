@@ -46,7 +46,13 @@ def logout():
     # Implementation for user logout
     return jsonify({"message": "User logged out successfully"})
 
-
+@app.route('/api/account', methods=['GET'])
+def account():
+    # Implementation for retrieving user account details
+    return jsonify({
+        "username": "example_user",
+        "email": "example@example.com"
+    })
 
 @app.route('/health-check')
 def health_check():
