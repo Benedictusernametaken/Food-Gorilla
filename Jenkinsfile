@@ -69,6 +69,13 @@ pipeline {
             }
         }
 
+        stage('Frontend Code Quality') {
+            steps {
+            sh '''
+                docker compose run --rm frontend npm run lint
+            }
+        }
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         stage('Preflight Checks via Ansible') {
             steps {
