@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const testNumber = 123;
 
 // Set via docker-compose.yml -> resolves to the backend container over
 // Docker's internal network. Never hardcode this.

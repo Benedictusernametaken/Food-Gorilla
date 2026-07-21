@@ -5,6 +5,10 @@ module.exports = [
       ecmaVersion: "latest",
       sourceType: "commonjs"
     },
-    rules: {}
+    rules: {
+      "no-unused-vars": "error",
+      "no-undef": "error",
+      "semi": ["error", "always"]
+    }
   }
 ];
