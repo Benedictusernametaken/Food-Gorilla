@@ -118,7 +118,7 @@ pipeline {
                 // confirms the JSON body itself reports a real DB connection,
                 // which the container-level HEALTHCHECK doesn't inspect.
                 sh '''
-                    docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test exec -T backend python -c "
+                    docker compose ${COMPOSE_TEST_FILES} ${APP_NAME}_test exec -T backend python -c "
 import urllib.request, json, sys
 res = urllib.request.urlopen('http://127.0.0.1:5000/health-check', timeout=5)
 body = json.loads(res.read())
