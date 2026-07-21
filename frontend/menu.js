@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const testNumber = 123;
 
 // Set via docker-compose.yml -> resolves to the backend container over
 // Docker's internal network. Never hardcode this.
@@ -25,6 +24,7 @@ function decodeTokenPayload(token) {
         const json = Buffer.from(payloadSegment, 'base64url').toString('utf-8');
         return JSON.parse(json);
     } catch (err) {
+        console.error(err);
         return null;
     }
 }

@@ -33,6 +33,7 @@ function decodeTokenPayload(token) {
         const json = Buffer.from(payloadSegment, 'base64url').toString('utf-8');
         return JSON.parse(json);
     } catch (err) {
+        console.error(err);
         return null;
     }
 }

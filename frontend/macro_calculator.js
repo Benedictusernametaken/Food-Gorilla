@@ -35,6 +35,7 @@ function decodeTokenPayload(token) {
         const json = Buffer.from(payloadSegment, 'base64url').toString('utf-8');
         return JSON.parse(json);
     } catch (err) {
+        console.error(err);
         return null;
     }
 }
@@ -273,6 +274,7 @@ router.post('/macros/:id/delete', async (req, res) => {
     try {
         await backendFetch(token, `/profile/macros/${req.params.id}`, { method: 'DELETE' });
     } catch (err) {
+        console.error(err);
         // Fall through — the redirect below will simply still show the item,
         // which is an honest reflection of the delete not having gone through.
     }
