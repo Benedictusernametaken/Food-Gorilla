@@ -62,9 +62,9 @@ pipeline {
             steps {
                 echo '🔎 Running code quality checks (Ruff + mypy)...'
                 sh '''
-                    docker compose build backend
-                    docker compose run --rm backend ruff check .
-                    docker compose run --rm backend mypy .
+                    docker compose -f docker-compose.yml build backend
+                    docker compose run -f docker-compose.yml --rm backend ruff check .
+                    docker compose run -f docker-compose.yml --rm backend mypy .
                 '''
             }
         }
@@ -72,8 +72,8 @@ pipeline {
         stage('Debug Frontend Build') {
             steps {
                 sh '''
-                    docker compose build --no-cache frontend
-                    docker compose run --rm frontend cat /app/package.json
+                    docker compose -f docker-compose.yml build --no-cache frontend
+                    docker compose -f docker-compose.yml run --rm frontend cat /app/package.json
                 '''
             }
         }
