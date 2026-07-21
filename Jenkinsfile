@@ -69,6 +69,14 @@ pipeline {
             }
         }
 
+        stage('Debug Frontend') {
+            steps {
+                sh '''
+                    docker compose run --rm frontend cat /app/package.json
+                '''
+            }
+        }
+
         stage('Frontend Code Quality') {
             steps {
                 sh '''
