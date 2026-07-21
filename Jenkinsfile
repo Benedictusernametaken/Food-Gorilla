@@ -81,7 +81,7 @@ pipeline {
         stage('Frontend Code Quality') {
             steps {
                 sh '''
-                    docker compose run --rm frontend npm run lint
+                    docker compose -f docker-compose.yml run --rm frontend npm run lint
                 '''
             }
         }
