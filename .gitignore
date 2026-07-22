@@ -3,3 +3,10 @@ node_modules/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Local Trivy scan evidence (not for the repo)
+BEFORE-*.txt
+AFTER-*.txt
+BACKEND-*.txt
+trivy-*.txt
+*.png
