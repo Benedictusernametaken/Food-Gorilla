@@ -86,15 +86,6 @@ pipeline {
             }
         }
 
-        stage('Debug Hadolint Config') {
-            steps {
-                sh '''
-                    echo "===== CONFIG ====="
-                    cat .hadolint.yaml
-                '''
-            }
-        }
-
         stage('Dockerfile Quality') {
             steps {
                 sh '''
