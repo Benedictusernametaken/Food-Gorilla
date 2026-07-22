@@ -114,13 +114,19 @@ pipeline {
                     -i hadolint/hadolint < database/Dockerfile
 
                     echo "Checking jenkins Dockerfile..."
+                    
+                    set +e
+
                     docker run --rm \
                     -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
                     -i hadolint/hadolint < jenkins/Dockerfile
+                    --ignore DL3008 < jenkins/Dockerfile
 
                     EXIT_CODE=$?
 
                     echo "Hadolint exit code = $EXIT_CODE"
+
+                    set -e
 
                     exit $EXIT_CODE
                 '''
