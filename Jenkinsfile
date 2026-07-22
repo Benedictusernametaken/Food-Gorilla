@@ -86,6 +86,16 @@ pipeline {
             }
         }
 
+        stage('Dockerfile Quality') {
+            steps {
+                sh '''
+                    docker run --rm -i hadolint/hadolint < backend/Dockerfile
+                    docker run --rm -i hadolint/hadolint < frontend/Dockerfile
+                    docker run --rm -i hadolint/hadolint < database/Dockerfile
+                '''
+            }
+        }
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         stage('Preflight Checks via Ansible') {
             steps {
