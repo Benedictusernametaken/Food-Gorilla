@@ -1,4 +1,3 @@
-diu leh lou mo
 const express = require('express');
 const router = express.Router();
 
