@@ -117,6 +117,12 @@ pipeline {
                     docker run --rm \
                     -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
                     -i hadolint/hadolint < jenkins/Dockerfile
+
+                    EXIT_CODE=$?
+
+                    echo "Hadolint exit code = $EXIT_CODE"
+
+                    exit $EXIT_CODE
                 '''
             }
         }
