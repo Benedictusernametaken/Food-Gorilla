@@ -89,9 +89,17 @@ pipeline {
         stage('Dockerfile Quality') {
             steps {
                 sh '''
+                    echo "Checking backend Dockerfile..."
                     docker run --rm -i hadolint/hadolint < backend/Dockerfile
+
+                    echo "Checking frontend Dockerfile..."
                     docker run --rm -i hadolint/hadolint < frontend/Dockerfile
+
+                    echo "Checking database Dockerfile..."
                     docker run --rm -i hadolint/hadolint < database/Dockerfile
+
+                    echo "Checking jenkins Dockerfile..."
+                    docker run --rm -i hadolint/hadolint < jenkins/Dockerfile
                 '''
             }
         }
