@@ -90,16 +90,24 @@ pipeline {
             steps {
                 sh '''
                     echo "Checking backend Dockerfile..."
-                    docker run --rm -i hadolint/hadolint < backend/Dockerfile
+                    docker run --rm \
+                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                    -i hadolint/hadolint < backend/Dockerfile
 
                     echo "Checking frontend Dockerfile..."
-                    docker run --rm -i hadolint/hadolint < frontend/Dockerfile
+                    docker run --rm \
+                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                    -i hadolint/hadolint < frontend/Dockerfile
 
                     echo "Checking database Dockerfile..."
-                    docker run --rm -i hadolint/hadolint < database/Dockerfile
+                    docker run --rm \
+                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                    -i hadolint/hadolint < database/Dockerfile
 
                     echo "Checking jenkins Dockerfile..."
-                    docker run --rm -i hadolint/hadolint < jenkins/Dockerfile
+                    docker run --rm \
+                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                    -i hadolint/hadolint < jenkins/Dockerfile
                 '''
             }
         }
