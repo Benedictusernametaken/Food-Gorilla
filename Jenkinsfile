@@ -118,9 +118,9 @@ pipeline {
                     set +e
 
                     docker run --rm \
-                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
-                    -i hadolint/hadolint < jenkins/Dockerfile
-                    --ignore DL3008 < jenkins/Dockerfile
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < jenkins/Dockerfile
+                        --ignore DL3008 < jenkins/Dockerfile
 
                     EXIT_CODE=$?
 
