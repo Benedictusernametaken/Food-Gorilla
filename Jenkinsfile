@@ -100,35 +100,24 @@ pipeline {
                 sh '''
                     echo "Checking backend Dockerfile..."
                     docker run --rm \
-                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
-                    -i hadolint/hadolint < backend/Dockerfile
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < backend/Dockerfile
 
                     echo "Checking frontend Dockerfile..."
                     docker run --rm \
-                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
-                    -i hadolint/hadolint < frontend/Dockerfile
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < frontend/Dockerfile
 
                     echo "Checking database Dockerfile..."
                     docker run --rm \
-                    -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
-                    -i hadolint/hadolint < database/Dockerfile
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < database/Dockerfile
 
                     echo "Checking jenkins Dockerfile..."
-                    
-                    set +e
 
                     docker run --rm \
                         -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
-                        -i hadolint/hadolint < jenkins/Dockerfile \
-                        --ignore DL3008 < jenkins/Dockerfile
-
-                    EXIT_CODE=$?
-
-                    echo "Hadolint exit code = $EXIT_CODE"
-
-                    set -e
-
-                    exit $EXIT_CODE
+                        -i hadolint/hadolint < jenkins/Dockerfile 
                 '''
             }
         }
