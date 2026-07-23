@@ -139,7 +139,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                       -v ${WORKSPACE}/.trivyignore:/trivyignore \
                       aquasec/trivy:latest image \
                       --severity HIGH,CRITICAL --ignore-unfixed \
-                      --ignorefile /trivyignore \
+                      --ignore-ids CVE-2026-13149,CVE-2026-33671,CVE-2026-48815,CVE-2026-59873,CVE-2026-59874,CVE-2026-23949,CVE-2026-24049 \
                       --exit-code 1 --no-progress \
                       ${APP_NAME}-backend:scan
                 '''
@@ -149,7 +149,6 @@ if body.get('database_connectivity') != 'CONNECTED':
                     docker run --rm \
                       -v /var/run/docker.sock:/var/run/docker.sock \
                       -v trivy-cache:/root/.cache/trivy \
-                      -v ${WORKSPACE}/.trivyignore:/trivyignore \
                       aquasec/trivy:latest image \
                       --severity HIGH,CRITICAL --ignore-unfixed \
                       --ignorefile /trivyignore \
