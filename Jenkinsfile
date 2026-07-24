@@ -131,15 +131,26 @@ if body.get('database_connectivity') != 'CONNECTED':
                 sh 'docker build -t ${APP_NAME}-backend:scan ./backend'
                 sh 'docker build -t ${APP_NAME}-frontend:scan ./frontend'
 
+                // Copy .trivyignore into the trivy-cache NAMED VOLUME via stdin.
+                // A bind mount can't be used here: ${WORKSPACE} is a path inside
+                // the Jenkins container, but "docker run -v" is executed by the
+                // HOST daemon, which has no such path. Named volumes are resolved
+                // by name, so they work from either side.
+                echo '📋 Staging .trivyignore into the Trivy cache volume...'
+                sh '''
+                    docker run --rm -i -v trivy-cache:/cache \
+                      --entrypoint sh aquasec/trivy:latest \
+                      -c 'cat > /cache/trivyignore' < .trivyignore
+                '''
+
                 echo '🔍 Scanning backend image with Trivy...'
                 sh '''
                     docker run --rm \
                       -v /var/run/docker.sock:/var/run/docker.sock \
                       -v trivy-cache:/root/.cache/trivy \
-                      -v ${WORKSPACE}/.trivyignore:/trivyignore \
                       aquasec/trivy:latest image \
                       --severity HIGH,CRITICAL --ignore-unfixed \
-                      --ignore-ids CVE-2026-13149,CVE-2026-33671,CVE-2026-48815,CVE-2026-59873,CVE-2026-59874,CVE-2026-23949,CVE-2026-24049 \
+                      --ignorefile /root/.cache/trivy/trivyignore \
                       --exit-code 1 --no-progress \
                       ${APP_NAME}-backend:scan
                 '''
@@ -151,7 +162,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                       -v trivy-cache:/root/.cache/trivy \
                       aquasec/trivy:latest image \
                       --severity HIGH,CRITICAL --ignore-unfixed \
-                      --ignorefile /trivyignore \
+                      --ignorefile /root/.cache/trivy/trivyignore \
                       --exit-code 1 --no-progress \
                       ${APP_NAME}-frontend:scan
                 '''
