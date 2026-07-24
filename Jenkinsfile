@@ -124,7 +124,70 @@ if body.get('database_connectivity') != 'CONNECTED':
                 }
             }
         }
+// STAGE 2.6: SECURITY SCANNING (Trivy) — every branch, gates the PR
+        stage('Security Scans') {
+            steps {
+                echo '🛡️  Building images for scanning...'
+                sh 'docker build -t ${APP_NAME}-backend:scan ./backend'
+                sh 'docker build -t ${APP_NAME}-frontend:scan ./frontend'
 
+                // Copy .trivyignore into the trivy-cache NAMED VOLUME via stdin.
+                // A bind mount can't be used here: ${WORKSPACE} is a path inside
+                // the Jenkins container, but "docker run -v" is executed by the
+                // HOST daemon, which has no such path. Named volumes are resolved
+                // by name, so they work from either side.
+                echo '📋 Staging .trivyignore into the Trivy cache volume...'
+                sh '''
+                    docker run --rm -i -v trivy-cache:/cache \
+                      --entrypoint sh aquasec/trivy:latest \
+                      -c 'cat > /cache/trivyignore' < .trivyignore
+                '''
+
+                echo '🔍 Scanning backend image with Trivy...'
+                sh '''
+                    docker run --rm \
+                      -v /var/run/docker.sock:/var/run/docker.sock \
+                      -v trivy-cache:/root/.cache/trivy \
+                      aquasec/trivy:latest image \
+                      --severity HIGH,CRITICAL --ignore-unfixed \
+                      --ignorefile /root/.cache/trivy/trivyignore \
+                      --exit-code 1 --no-progress \
+                      ${APP_NAME}-backend:scan
+                '''
+
+                echo '🔍 Scanning frontend image with Trivy...'
+                sh '''
+                    docker run --rm \
+                      -v /var/run/docker.sock:/var/run/docker.sock \
+                      -v trivy-cache:/root/.cache/trivy \
+                      aquasec/trivy:latest image \
+                      --severity HIGH,CRITICAL --ignore-unfixed \
+                      --ignorefile /root/.cache/trivy/trivyignore \
+                      --exit-code 1 --no-progress \
+                      ${APP_NAME}-frontend:scan
+                '''
+            }
+            post {
+                always {
+                    echo '📄 Archiving full unfiltered scan reports...'
+                    sh '''
+                        docker run --rm \
+                          -v /var/run/docker.sock:/var/run/docker.sock \
+                          -v trivy-cache:/root/.cache/trivy \
+                          aquasec/trivy:latest image --exit-code 0 --no-progress \
+                          ${APP_NAME}-backend:scan > trivy-backend-report.txt 2>&1 || true
+                    '''
+                    sh '''
+                        docker run --rm \
+                          -v /var/run/docker.sock:/var/run/docker.sock \
+                          -v trivy-cache:/root/.cache/trivy \
+                          aquasec/trivy:latest image --exit-code 0 --no-progress \
+                          ${APP_NAME}-frontend:scan > trivy-frontend-report.txt 2>&1 || true
+                    '''
+                    archiveArtifacts artifacts: 'trivy-*-report.txt', allowEmptyArchive: true
+                }
+            }
+        }
         // STAGE 2.5: AUTO-OPEN PR TO MAIN (feature branches only, after tests pass)
         stage('Open Pull Request to main') {
             when {
