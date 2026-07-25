@@ -150,7 +150,6 @@ pipeline {
                             ${SONAR_SCANNER_IMAGE} \
                             -Dsonar.host.url=${SONAR_HOST} \
                             -Dsonar.token=${SONAR_TOKEN} \
-                            -Dsonar.branch.name=${BRANCH_NAME} \
                             -Dsonar.qualitygate.wait=${SONAR_GATE_WAIT}
                         set -x
 
