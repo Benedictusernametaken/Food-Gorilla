@@ -1,0 +1,25 @@
+# Reviewed 2026-07-22 by Alden — Security Scan stage
+#
+# All 5 findings are in npm's own bundled dependencies inside the
+# node:22-slim base image (node-tar, brace-expansion, glob, minimatch).
+# They are NOT in our application code (frontend/app/node_modules is clean)
+# and are not reachable at runtime — the container runs Express, never npm.
+# Cannot be patched without upstream updating the base image.
+# Bumping 18 -> 22 already cleared all Debian OS CVEs (14 -> 0).
+# Re-review when node:24-slim ships a patched npm.
+
+CVE-2026-13149
+CVE-2026-33671
+CVE-2026-48815
+CVE-2026-59873
+CVE-2026-59874
+
+# Backend — reviewed 2026-07-22 by Alden
+# jaraco.context and wheel are pip/setuptools build-time tooling pulled in
+# by the python:3.10-slim base image. Not imported by the application and
+# not present in requirements.txt. Debian OS packages: 0.
+# PyJWT 2.9.0 -> 2.13.0 in the same PR fixed the two real findings,
+# including CVE-2026-48526 (authentication bypass via forged tokens).
+
+CVE-2026-23949
+CVE-2026-24049
