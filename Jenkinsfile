@@ -235,7 +235,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                     tar -cf - backend/requirements.txt \
                               frontend/package.json \
                               frontend/package-lock.json \
-                      | docker run --rm -i -v dc-work:/work \
+                      | docker run --rm -i --user root -v dc-work:/work \
                           --entrypoint sh ${DC_IMAGE} \
                           -c 'rm -rf /work/src /work/report && mkdir -p /work/src /work/report && tar -xf - -C /work/src'
 
@@ -258,7 +258,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                     # silently skips Python entirely and backend/requirements.txt
                     # goes unscanned. It reports no error when that happens, which
                     # is exactly why it is easy to get wrong.
-                    docker run --rm \
+                    docker run --rm --user root \
                         -v dc-work:/work \
                         -v dc-data:/usr/share/dependency-check/data \
                         ${DC_IMAGE} \
@@ -276,7 +276,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                     # so archiveArtifacts below can pick it up.
                     rm -rf dependency-check-report
                     mkdir -p dependency-check-report
-                    docker run --rm -v dc-work:/work \
+                    docker run --rm --user root -v dc-work:/work \
                         --entrypoint sh ${DC_IMAGE} \
                         -c 'tar -cf - -C /work/report .' \
                       | tar -xf - -C dependency-check-report
