@@ -163,7 +163,7 @@ pipeline {
                 // next, over their own in-progress work.
                 // Phase 2: 'true' — the scanner waits for the gate and fails
                 // the build when the gate fails.
-                SONAR_GATE_WAIT = 'false'
+                SONAR_GATE_WAIT = 'true'
             }
             steps {
                 echo 'Analysing code quality with SonarQube...'
