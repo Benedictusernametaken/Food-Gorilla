@@ -1,5 +1,6 @@
-import psycopg2
 from unittest.mock import MagicMock, patch
+
+import psycopg2
 
 
 def make_mock_connection(fetchall_return=None):
