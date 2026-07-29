@@ -65,7 +65,7 @@ def get_dashboard():
         )
         log_row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load dashboard: {e!s}"}), 500
     finally:
         if connection:
@@ -146,7 +146,7 @@ def get_weekly_dashboard():
         )
         log_rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load weekly dashboard: {e!s}"}), 500
     finally:
         if connection:
@@ -206,7 +206,7 @@ def reset_daily_log():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to reset today's log: {e!s}"}), 500
     finally:
         if connection:

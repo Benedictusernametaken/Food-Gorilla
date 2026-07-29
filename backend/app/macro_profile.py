@@ -156,7 +156,7 @@ def create_macro_profile():
         row = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to save macro profile: {e!s}"}), 500
     finally:
         if connection:
@@ -183,7 +183,7 @@ def list_macro_profiles():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to list macro profiles: {e!s}"}), 500
     finally:
         if connection:
@@ -209,7 +209,7 @@ def delete_macro_profile(profile_id):
         deleted = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to delete macro profile: {e!s}"}), 500
     finally:
         if connection:

@@ -36,7 +36,7 @@ def health_check():
             "database_connectivity": "CONNECTED"
         })
 
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({
             "status": "degraded",
             "database_connectivity": f"FAILED: {e!s}"

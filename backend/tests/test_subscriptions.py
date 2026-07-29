@@ -215,9 +215,9 @@ OWNED_ROW = (100, 1, "lunch", 1, "active")
 CANCELLED_OWNED_ROW = (100, 1, "lunch", 1, "cancelled")
 
 # Monday 2026-07-20 08:00 — well before the 10:00 cutoff for a 12:00 lunch slot.
-BEFORE_CUTOFF = datetime.datetime(2026, 7, 20, 8, 0)
+BEFORE_CUTOFF = datetime.datetime(2026, 7, 20, 8, 0, tzinfo=datetime.timezone.utc)
 # Monday 2026-07-20 11:00 — inside the 2-hour cutoff window before lunch.
-AFTER_CUTOFF = datetime.datetime(2026, 7, 20, 11, 0)
+AFTER_CUTOFF = datetime.datetime(2026, 7, 20, 11, 0, tzinfo=datetime.timezone.utc)
 
 
 def test_modify_scheduled_meal_requires_auth(client):

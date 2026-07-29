@@ -1,3 +1,4 @@
+import psycopg2
 from unittest.mock import MagicMock, patch
 
 
@@ -49,7 +50,7 @@ def test_browse_menu_no_auth_required(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_db_error(mock_get_conn, client):
-    mock_get_conn.side_effect = Exception("connection refused")
+    mock_get_conn.side_effect = psycopg2.OperationalError("connection refused")
 
     resp = client.get('/menu')
 

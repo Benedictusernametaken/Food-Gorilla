@@ -49,7 +49,7 @@ def browse_menu():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load menu: {e!s}"}), 500
     finally:
         if connection:

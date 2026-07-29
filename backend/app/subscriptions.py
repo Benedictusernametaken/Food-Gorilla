@@ -20,9 +20,9 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # against it — the schema only stores a VARCHAR label, not a timestamp.
 DAY_NAMES = {1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday"}
 SLOT_TIMES = {
-    "breakfast": datetime.time(8, 0),
-    "lunch": datetime.time(12, 0),
-    "dinner": datetime.time(18, 0),
+    "breakfast": datetime.time(8, 0, tzinfo=datetime.timezone.utc),
+    "lunch": datetime.time(12, 0, tzinfo=datetime.timezone.utc),
+    "dinner": datetime.time(18, 0, tzinfo=datetime.timezone.utc),
 }
 CUTOFF_HOURS_BEFORE_DELIVERY = 2
 
@@ -51,7 +51,7 @@ def get_authenticated_user():
 def current_time():
     # Its own function (rather than calling datetime.datetime.now() inline)
     # purely so tests can patch "now" without freezing the whole clock.
-    return datetime.datetime.now()
+    return datetime.datetime.now(tz=datetime.timezone.utc)
 
 
 def next_occurrence(day_of_week, time_slot, now):
@@ -195,7 +195,7 @@ def create_subscription():
 
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to create subscription: {e!s}"}), 500
     finally:
         if connection:
@@ -251,7 +251,7 @@ def list_subscriptions():
         cursor = connection.cursor()
         subscriptions = fetch_subscriptions_with_schedule(cursor, user_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load subscriptions: {e!s}"}), 500
     finally:
         if connection:
@@ -272,7 +272,7 @@ def get_subscription(subscription_id):
         cursor = connection.cursor()
         subscriptions = fetch_subscriptions_with_schedule(cursor, user_id, subscription_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load subscription: {e!s}"}), 500
     finally:
         if connection:
@@ -318,7 +318,7 @@ def cancel_subscription(subscription_id):
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to cancel subscription: {e!s}"}), 500
     finally:
         if connection:
@@ -398,7 +398,7 @@ def modify_scheduled_meal(subscription_id, schedule_id):
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to modify scheduled meal: {e!s}"}), 500
     finally:
         if connection:
@@ -435,7 +435,7 @@ def cancel_scheduled_meal(subscription_id, schedule_id):
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to cancel scheduled meal: {e!s}"}), 500
     finally:
         if connection:

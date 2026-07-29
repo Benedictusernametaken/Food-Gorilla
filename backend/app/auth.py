@@ -67,7 +67,7 @@ def register():
         user_id = cursor.fetchone()[0]
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"registration failed: {e!s}"}), 500
     finally:
         if connection:
@@ -96,7 +96,7 @@ def login():
         )
         row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"login failed: {e!s}"}), 500
     finally:
         if connection:
@@ -124,7 +124,7 @@ def reset_request():
         cursor.execute("SELECT user_id, username FROM users WHERE email = %s", (email,))
         row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"reset request failed: {e!s}"}), 500
     finally:
         if connection:
@@ -183,7 +183,7 @@ def reset_confirm():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"reset confirm failed: {e!s}"}), 500
     finally:
         if connection:

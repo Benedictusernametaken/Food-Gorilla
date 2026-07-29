@@ -38,7 +38,7 @@ VALID_PAYLOAD = {
     "goal": "gain_muscle",
 }
 
-PROFILE_ROW = (5, 2800, 210, 315, 78, datetime.datetime(2026, 7, 13, 12, 0, 0))
+PROFILE_ROW = (5, 2800, 210, 315, 78, datetime.datetime(2026, 7, 13, 12, 0, 0, tzinfo=datetime.timezone.utc))
 
 
 def test_create_profile_requires_auth(client):

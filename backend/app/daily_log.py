@@ -79,7 +79,7 @@ def get_daily_log():
             )
         row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load daily log: {e!s}"}), 500
     finally:
         if connection:
@@ -116,7 +116,7 @@ def get_daily_log_history():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load daily log history: {e!s}"}), 500
     finally:
         if connection:

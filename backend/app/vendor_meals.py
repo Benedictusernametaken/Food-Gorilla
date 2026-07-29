@@ -133,7 +133,7 @@ def list_ingredient_catalog():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to list ingredients: {e!s}"}), 500
     finally:
         if connection:
@@ -171,7 +171,7 @@ def create_ingredient():
         row = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to create ingredient: {e!s}"}), 500
     finally:
         if connection:
@@ -279,7 +279,7 @@ def list_vendor_meals():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to list meals: {e!s}"}), 500
     finally:
         if connection:
@@ -335,7 +335,7 @@ def create_vendor_meal():
         result = meal_row_to_dict(row)
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to create meal: {e!s}"}), 500
     finally:
         if connection:
@@ -371,7 +371,7 @@ def get_vendor_meal(meal_id):
         result = meal_row_to_dict(row)
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to fetch meal: {e!s}"}), 500
     finally:
         if connection:
@@ -431,7 +431,7 @@ def update_vendor_meal(meal_id):
         result = meal_row_to_dict(row)
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to update meal: {e!s}"}), 500
     finally:
         if connection:
@@ -458,7 +458,7 @@ def delete_vendor_meal(meal_id):
         deleted = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to delete meal: {e!s}"}), 500
     finally:
         if connection:
@@ -494,7 +494,7 @@ def toggle_vendor_meal_availability(meal_id):
         row = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to update availability: {e!s}"}), 500
     finally:
         if connection:

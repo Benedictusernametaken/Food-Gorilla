@@ -166,7 +166,7 @@ def checkout():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to check out: {e!s}"}), 500
     finally:
         if connection:
@@ -194,7 +194,7 @@ def list_orders():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load orders: {e!s}"}), 500
     finally:
         if connection:
@@ -237,7 +237,7 @@ def get_order(order_id):
 
         order = fetch_order_detail(cursor, order_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load order: {e!s}"}), 500
     finally:
         if connection:

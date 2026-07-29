@@ -222,7 +222,7 @@ def get_cart():
         cursor = connection.cursor()
         cart = fetch_cart(cursor, user_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load cart: {e!s}"}), 500
     finally:
         if connection:
@@ -248,7 +248,7 @@ def clear_cart():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to clear cart: {e!s}"}), 500
     finally:
         if connection:
@@ -343,7 +343,7 @@ def add_to_cart():
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to add to cart: {e!s}"}), 500
     finally:
         if connection:
@@ -439,7 +439,7 @@ def update_cart_item(order_item_id):
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to update cart item: {e!s}"}), 500
     finally:
         if connection:
@@ -487,7 +487,7 @@ def remove_cart_item(order_item_id):
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to remove cart item: {e!s}"}), 500
     finally:
         if connection:

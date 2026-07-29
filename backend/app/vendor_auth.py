@@ -65,7 +65,7 @@ def vendor_register():
         vendor_id = cursor.fetchone()[0]
         connection.commit()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"registration failed: {e!s}"}), 500
     finally:
         if connection:
@@ -94,7 +94,7 @@ def vendor_login():
         )
         row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"login failed: {e!s}"}), 500
     finally:
         if connection:

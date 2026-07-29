@@ -32,7 +32,7 @@ def auth_header(token):
 
 
 # order_id, vendor_id, order_status, order_date, total_price, total_calories, total_protein, total_carbs, total_fats
-CONFIRMED_ORDER_ROW = (55, 7, "confirmed", datetime.datetime(2026, 7, 13, 12, 0, 0), 25.0, 1040, 90, 100, 20)
+CONFIRMED_ORDER_ROW = (55, 7, "confirmed", datetime.datetime(2026, 7, 13, 12, 0, 0, tzinfo=datetime.timezone.utc), 25.0, 1040, 90, 100, 20)
 
 
 # ---------------------------------------------------------------------------

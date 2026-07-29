@@ -63,7 +63,7 @@ def get_meal_customization_options(meal_id):
         cursor = connection.cursor()
         meal_row, ingredient_rows = fetch_customizable_meal(cursor, meal_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load meal: {e!s}"}), 500
     finally:
         if connection:
@@ -116,7 +116,7 @@ def customize_meal(meal_id):
         cursor = connection.cursor()
         meal_row, ingredient_rows = fetch_customizable_meal(cursor, meal_id)
         cursor.close()
-    except Exception as e:
+    except psycopg2.Error as e:
         return jsonify({"error": f"failed to load meal: {e!s}"}), 500
     finally:
         if connection:
