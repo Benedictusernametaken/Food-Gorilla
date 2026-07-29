@@ -86,7 +86,7 @@ def compute_serving(meal_row, ingredient_rows, overrides):
     macros — plus the actual per-ingredient quantities used. Mirrors Story
     3's customize_meal math so a cart item's totals match what the
     customization screen already showed the user."""
-    (meal_id, vendor_id, name, base_price, base_calories,
+    (_meal_id, vendor_id, name, base_price, base_calories,
      base_protein, base_carbs, base_fats) = meal_row
 
     known_ids = {row[0] for row in ingredient_rows}

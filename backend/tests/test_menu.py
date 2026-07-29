@@ -14,7 +14,7 @@ MEAL_ROW = (1, 1, "Lean & Mean Kitchen", "Chicken Bowl", "desc", 12.5, 500, 40, 
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')
@@ -28,7 +28,7 @@ def test_browse_menu_success(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_empty(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[])
+    connection, _cursor = make_mock_connection(fetchall_return=[])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')
@@ -39,7 +39,7 @@ def test_browse_menu_empty(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_no_auth_required(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')

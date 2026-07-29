@@ -21,7 +21,7 @@ INGREDIENT_ROWS = [
 
 @patch('app.meal_builder.get_db_connection')
 def test_get_customize_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW], fetchall_return=INGREDIENT_ROWS,
     )
     mock_get_conn.return_value = connection
@@ -36,7 +36,7 @@ def test_get_customize_success(mock_get_conn, client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_get_customize_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/meals/999/customize')
@@ -46,7 +46,7 @@ def test_get_customize_meal_not_found(mock_get_conn, client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_post_customize_defaults_match_base(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW], fetchall_return=INGREDIENT_ROWS,
     )
     mock_get_conn.return_value = connection
@@ -62,7 +62,7 @@ def test_post_customize_defaults_match_base(mock_get_conn, client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_post_customize_increase_ingredient(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW], fetchall_return=INGREDIENT_ROWS,
     )
     mock_get_conn.return_value = connection
@@ -79,7 +79,7 @@ def test_post_customize_increase_ingredient(mock_get_conn, client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_post_customize_remove_ingredient(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW], fetchall_return=INGREDIENT_ROWS,
     )
     mock_get_conn.return_value = connection
@@ -94,7 +94,7 @@ def test_post_customize_remove_ingredient(mock_get_conn, client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_post_customize_unknown_ingredient(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW], fetchall_return=INGREDIENT_ROWS,
     )
     mock_get_conn.return_value = connection
@@ -122,7 +122,7 @@ def test_post_customize_ingredients_not_object(client):
 
 @patch('app.meal_builder.get_db_connection')
 def test_post_customize_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.post('/meals/999/customize', json={})

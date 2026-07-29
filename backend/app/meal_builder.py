@@ -125,7 +125,7 @@ def customize_meal(meal_id):
     if not meal_row:
         return jsonify({"error": "meal not found"}), 404
 
-    (meal_id, name, description, base_price, base_calories,
+    (meal_id, name, _description, base_price, base_calories,
      base_protein, base_carbs, base_fats) = meal_row
 
     known_ingredient_ids = {row[0] for row in ingredient_rows}

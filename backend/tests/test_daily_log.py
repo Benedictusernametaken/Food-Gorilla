@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import MagicMock, patch
 
 import jwt
+
 from app.daily_log import JWT_ALGORITHM, JWT_SECRET
 
 
@@ -45,7 +46,7 @@ def test_get_daily_log_requires_auth(client):
 
 @patch('app.daily_log.get_db_connection')
 def test_get_daily_log_no_entry_today_returns_zeros(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/daily-log', headers=auth_header(user_token()))
@@ -58,7 +59,7 @@ def test_get_daily_log_no_entry_today_returns_zeros(mock_get_conn, client):
 
 @patch('app.daily_log.get_db_connection')
 def test_get_daily_log_today(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[LOG_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[LOG_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/daily-log', headers=auth_header(user_token()))

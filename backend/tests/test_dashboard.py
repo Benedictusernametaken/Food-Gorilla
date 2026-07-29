@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import MagicMock, patch
 
 import jwt
+
 from app.dashboard import JWT_ALGORITHM, JWT_SECRET
 
 
@@ -51,7 +52,7 @@ def test_reset_token_cannot_authenticate_dashboard(client):
 
 @patch('app.dashboard.get_db_connection')
 def test_dashboard_no_profile_no_log(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None, None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None, None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard', headers=auth_header(user_token()))
@@ -67,7 +68,7 @@ def test_dashboard_no_profile_no_log(mock_get_conn, client):
 
 @patch('app.dashboard.get_db_connection')
 def test_dashboard_under_target(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, LOG_ROW_UNDER_TARGET])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, LOG_ROW_UNDER_TARGET])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard', headers=auth_header(user_token()))
@@ -82,7 +83,7 @@ def test_dashboard_under_target(mock_get_conn, client):
 
 @patch('app.dashboard.get_db_connection')
 def test_dashboard_exceeded_calories(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, LOG_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, LOG_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard', headers=auth_header(user_token()))
@@ -96,7 +97,7 @@ def test_dashboard_exceeded_calories(mock_get_conn, client):
 
 @patch('app.dashboard.get_db_connection')
 def test_dashboard_profile_but_no_log_today(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW, None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard', headers=auth_header(user_token()))
@@ -127,7 +128,7 @@ def test_get_weekly_dashboard_requires_auth(client):
 
 @patch('app.dashboard.get_db_connection')
 def test_weekly_dashboard_no_logs(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW], fetchall_side_effect=[[]])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW], fetchall_side_effect=[[]])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard/weekly', headers=auth_header(user_token()))
@@ -140,7 +141,7 @@ def test_weekly_dashboard_no_logs(mock_get_conn, client):
 
 @patch('app.dashboard.get_db_connection')
 def test_weekly_dashboard_with_logs(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW], fetchall_side_effect=[WEEKLY_ROWS_DESC])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[PROFILE_ROW], fetchall_side_effect=[WEEKLY_ROWS_DESC])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard/weekly', headers=auth_header(user_token()))
@@ -159,7 +160,7 @@ def test_weekly_dashboard_with_logs(mock_get_conn, client):
 
 @patch('app.dashboard.get_db_connection')
 def test_weekly_dashboard_no_profile(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None], fetchall_side_effect=[WEEKLY_ROWS_DESC])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None], fetchall_side_effect=[WEEKLY_ROWS_DESC])
     mock_get_conn.return_value = connection
 
     resp = client.get('/dashboard/weekly', headers=auth_header(user_token()))
@@ -182,7 +183,7 @@ def test_reset_daily_log_requires_auth(client):
 
 @patch('app.dashboard.get_db_connection')
 def test_reset_daily_log_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection()
+    connection, _cursor = make_mock_connection()
     mock_get_conn.return_value = connection
 
     resp = client.post('/dashboard/reset', headers=auth_header(user_token()))

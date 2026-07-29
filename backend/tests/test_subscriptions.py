@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import MagicMock, patch
 
 import jwt
+
 from app.subscriptions import JWT_ALGORITHM, JWT_SECRET
 
 
@@ -64,7 +65,7 @@ def test_reset_token_cannot_authenticate(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_create_subscription_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[SUB_ROW, (100,), (101,)],
         fetchall_side_effect=[[MEAL_ROW_1, MEAL_ROW_2]],
     )
@@ -126,7 +127,7 @@ def test_create_subscription_duplicate_day_and_slot(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_create_subscription_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_side_effect=[[MEAL_ROW_1]])
+    connection, _cursor = make_mock_connection(fetchall_side_effect=[[MEAL_ROW_1]])
     mock_get_conn.return_value = connection
 
     resp = client.post('/subscriptions', headers=auth_header(user_token()), json=VALID_PAYLOAD)
@@ -145,7 +146,7 @@ def test_list_subscriptions_requires_auth(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_list_subscriptions_empty(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_side_effect=[[]])
+    connection, _cursor = make_mock_connection(fetchall_side_effect=[[]])
     mock_get_conn.return_value = connection
 
     resp = client.get('/subscriptions', headers=auth_header(user_token()))
@@ -160,7 +161,7 @@ def test_list_subscriptions_success(mock_get_conn, client):
         (10, 100, 1, "lunch", *MEAL_ROW_1),
         (10, 101, 3, "dinner", *MEAL_ROW_2),
     ]
-    connection, cursor = make_mock_connection(fetchall_side_effect=[[SUB_ROW], schedule_rows])
+    connection, _cursor = make_mock_connection(fetchall_side_effect=[[SUB_ROW], schedule_rows])
     mock_get_conn.return_value = connection
 
     resp = client.get('/subscriptions', headers=auth_header(user_token()))
@@ -183,7 +184,7 @@ def test_get_subscription_requires_auth(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_get_subscription_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_side_effect=[[]])
+    connection, _cursor = make_mock_connection(fetchall_side_effect=[[]])
     mock_get_conn.return_value = connection
 
     resp = client.get('/subscriptions/999', headers=auth_header(user_token()))
@@ -194,7 +195,7 @@ def test_get_subscription_not_found(mock_get_conn, client):
 @patch('app.subscriptions.get_db_connection')
 def test_get_subscription_success(mock_get_conn, client):
     schedule_rows = [(10, 100, 1, "lunch", *MEAL_ROW_1)]
-    connection, cursor = make_mock_connection(fetchall_side_effect=[[SUB_ROW], schedule_rows])
+    connection, _cursor = make_mock_connection(fetchall_side_effect=[[SUB_ROW], schedule_rows])
     mock_get_conn.return_value = connection
 
     resp = client.get('/subscriptions/10', headers=auth_header(user_token()))
@@ -236,7 +237,7 @@ def test_modify_scheduled_meal_invalid_time_slot(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.put('/subscriptions/10/schedule/999', headers=auth_header(user_token()), json={"meal_id": 2})
@@ -247,7 +248,7 @@ def test_modify_scheduled_meal_not_found(mock_get_conn, client):
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_success(mock_get_conn, mock_now, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW, MEAL_ROW_2])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW, MEAL_ROW_2])
     mock_get_conn.return_value = connection
     mock_now.return_value = BEFORE_CUTOFF
 
@@ -263,7 +264,7 @@ def test_modify_scheduled_meal_success(mock_get_conn, mock_now, client):
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
     mock_get_conn.return_value = connection
     mock_now.return_value = AFTER_CUTOFF
 
@@ -274,7 +275,7 @@ def test_modify_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_on_cancelled_subscription(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.put('/subscriptions/10/schedule/100', headers=auth_header(user_token()), json={"meal_id": 2})
@@ -285,7 +286,7 @@ def test_modify_scheduled_meal_on_cancelled_subscription(mock_get_conn, client):
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_modify_scheduled_meal_new_meal_not_found(mock_get_conn, mock_now, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW, None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW, None])
     mock_get_conn.return_value = connection
     mock_now.return_value = BEFORE_CUTOFF
 
@@ -305,7 +306,7 @@ def test_cancel_scheduled_meal_requires_auth(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_scheduled_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/subscriptions/10/schedule/999', headers=auth_header(user_token()))
@@ -316,7 +317,7 @@ def test_cancel_scheduled_meal_not_found(mock_get_conn, client):
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_scheduled_meal_success(mock_get_conn, mock_now, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
     mock_get_conn.return_value = connection
     mock_now.return_value = BEFORE_CUTOFF
 
@@ -329,7 +330,7 @@ def test_cancel_scheduled_meal_success(mock_get_conn, mock_now, client):
 @patch('app.subscriptions.current_time')
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[OWNED_ROW])
     mock_get_conn.return_value = connection
     mock_now.return_value = AFTER_CUTOFF
 
@@ -340,7 +341,7 @@ def test_cancel_scheduled_meal_after_cutoff(mock_get_conn, mock_now, client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_scheduled_meal_on_cancelled_subscription(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[CANCELLED_OWNED_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/subscriptions/10/schedule/100', headers=auth_header(user_token()))
@@ -359,7 +360,7 @@ def test_cancel_subscription_requires_auth(client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_subscription_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/subscriptions/999', headers=auth_header(user_token()))
@@ -369,7 +370,7 @@ def test_cancel_subscription_not_found(mock_get_conn, client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_subscription_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[(10, "active")])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[(10, "active")])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/subscriptions/10', headers=auth_header(user_token()))
@@ -381,7 +382,7 @@ def test_cancel_subscription_success(mock_get_conn, client):
 
 @patch('app.subscriptions.get_db_connection')
 def test_cancel_subscription_already_cancelled(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[(10, "cancelled")])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[(10, "cancelled")])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/subscriptions/10', headers=auth_header(user_token()))

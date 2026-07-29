@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import bcrypt
 import jwt
+
 from app.vendor_auth import JWT_ALGORITHM, JWT_SECRET
 
 
@@ -59,7 +60,7 @@ def test_vendor_register_short_password(client):
 
 @patch('app.vendor_auth.get_db_connection')
 def test_vendor_register_duplicate_email(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=(1,))
+    connection, _cursor = make_mock_connection(fetchone_return=(1,))
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/auth/register', json={
@@ -75,7 +76,7 @@ def test_vendor_register_duplicate_email(mock_get_conn, client):
 @patch('app.vendor_auth.get_db_connection')
 def test_vendor_login_success(mock_get_conn, client):
     password_hash = bcrypt.hashpw(b"supersecret1", bcrypt.gensalt()).decode('utf-8')
-    connection, cursor = make_mock_connection(fetchone_return=(9, "Some Restaurant", password_hash))
+    connection, _cursor = make_mock_connection(fetchone_return=(9, "Some Restaurant", password_hash))
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/auth/login', json={
@@ -95,7 +96,7 @@ def test_vendor_login_success(mock_get_conn, client):
 @patch('app.vendor_auth.get_db_connection')
 def test_vendor_login_wrong_password(mock_get_conn, client):
     password_hash = bcrypt.hashpw(b"correctpassword", bcrypt.gensalt()).decode('utf-8')
-    connection, cursor = make_mock_connection(fetchone_return=(9, "Some Restaurant", password_hash))
+    connection, _cursor = make_mock_connection(fetchone_return=(9, "Some Restaurant", password_hash))
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/auth/login', json={
@@ -108,7 +109,7 @@ def test_vendor_login_wrong_password(mock_get_conn, client):
 
 @patch('app.vendor_auth.get_db_connection')
 def test_vendor_login_unknown_vendor(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/auth/login', json={
