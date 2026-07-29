@@ -1,6 +1,8 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -62,7 +64,7 @@ def get_meal_customization_options(meal_id):
         meal_row, ingredient_rows = fetch_customizable_meal(cursor, meal_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -115,7 +117,7 @@ def customize_meal(meal_id):
         meal_row, ingredient_rows = fetch_customizable_meal(cursor, meal_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

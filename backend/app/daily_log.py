@@ -1,8 +1,10 @@
-from flask import jsonify, request
-import psycopg2
 import os
 import re
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -78,7 +80,7 @@ def get_daily_log():
         row = cursor.fetchone()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load daily log: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load daily log: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -115,7 +117,7 @@ def get_daily_log_history():
         rows = cursor.fetchall()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load daily log history: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load daily log history: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

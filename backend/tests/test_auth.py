@@ -1,8 +1,8 @@
+from unittest.mock import MagicMock, patch
+
 import bcrypt
 import jwt
-from unittest.mock import patch, MagicMock
-
-from app.auth import JWT_SECRET, JWT_ALGORITHM
+from app.auth import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_return=None):

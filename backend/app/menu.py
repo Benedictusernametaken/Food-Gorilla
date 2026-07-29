@@ -1,6 +1,8 @@
-from flask import jsonify
-import psycopg2
 import os
+
+import psycopg2
+from flask import jsonify
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -48,7 +50,7 @@ def browse_menu():
         rows = cursor.fetchall()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load menu: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load menu: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

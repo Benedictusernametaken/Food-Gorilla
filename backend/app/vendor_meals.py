@@ -1,7 +1,9 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -132,7 +134,7 @@ def list_ingredient_catalog():
         rows = cursor.fetchall()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to list ingredients: {str(e)}"}), 500
+        return jsonify({"error": f"failed to list ingredients: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -170,7 +172,7 @@ def create_ingredient():
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to create ingredient: {str(e)}"}), 500
+        return jsonify({"error": f"failed to create ingredient: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -278,7 +280,7 @@ def list_vendor_meals():
         rows = cursor.fetchall()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to list meals: {str(e)}"}), 500
+        return jsonify({"error": f"failed to list meals: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -334,7 +336,7 @@ def create_vendor_meal():
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to create meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to create meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -370,7 +372,7 @@ def get_vendor_meal(meal_id):
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to fetch meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to fetch meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -430,7 +432,7 @@ def update_vendor_meal(meal_id):
         result["ingredients"] = fetch_meal_ingredients(cursor, meal_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to update meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to update meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -457,7 +459,7 @@ def delete_vendor_meal(meal_id):
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to delete meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to delete meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -493,7 +495,7 @@ def toggle_vendor_meal_availability(meal_id):
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to update availability: {str(e)}"}), 500
+        return jsonify({"error": f"failed to update availability: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

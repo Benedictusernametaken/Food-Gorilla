@@ -1,7 +1,9 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -165,7 +167,7 @@ def checkout():
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to check out: {str(e)}"}), 500
+        return jsonify({"error": f"failed to check out: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -193,7 +195,7 @@ def list_orders():
         rows = cursor.fetchall()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load orders: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load orders: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -236,7 +238,7 @@ def get_order(order_id):
         order = fetch_order_detail(cursor, order_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load order: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load order: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
