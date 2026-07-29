@@ -1,8 +1,8 @@
 import datetime
-import jwt
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.daily_log import JWT_SECRET, JWT_ALGORITHM
+import jwt
+from app.daily_log import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_side_effect=None, fetchall_side_effect=None):

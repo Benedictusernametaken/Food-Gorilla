@@ -1,10 +1,12 @@
-from flask import jsonify, request
-import psycopg2
+import datetime
 import os
 import re
-import datetime
 from collections import defaultdict
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -194,7 +196,7 @@ def create_subscription():
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to create subscription: {str(e)}"}), 500
+        return jsonify({"error": f"failed to create subscription: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -250,7 +252,7 @@ def list_subscriptions():
         subscriptions = fetch_subscriptions_with_schedule(cursor, user_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load subscriptions: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load subscriptions: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -271,7 +273,7 @@ def get_subscription(subscription_id):
         subscriptions = fetch_subscriptions_with_schedule(cursor, user_id, subscription_id)
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to load subscription: {str(e)}"}), 500
+        return jsonify({"error": f"failed to load subscription: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -317,7 +319,7 @@ def cancel_subscription(subscription_id):
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to cancel subscription: {str(e)}"}), 500
+        return jsonify({"error": f"failed to cancel subscription: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -397,7 +399,7 @@ def modify_scheduled_meal(subscription_id, schedule_id):
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to modify scheduled meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to modify scheduled meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -434,7 +436,7 @@ def cancel_scheduled_meal(subscription_id, schedule_id):
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"failed to cancel scheduled meal: {str(e)}"}), 500
+        return jsonify({"error": f"failed to cancel scheduled meal: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

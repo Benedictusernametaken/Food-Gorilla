@@ -1,10 +1,12 @@
-from flask import jsonify, request
-import psycopg2
+import datetime
 import os
 import re
-import datetime
+
 import bcrypt
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -66,7 +68,7 @@ def register():
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"registration failed: {str(e)}"}), 500
+        return jsonify({"error": f"registration failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -95,7 +97,7 @@ def login():
         row = cursor.fetchone()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"login failed: {str(e)}"}), 500
+        return jsonify({"error": f"login failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -123,7 +125,7 @@ def reset_request():
         row = cursor.fetchone()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"reset request failed: {str(e)}"}), 500
+        return jsonify({"error": f"reset request failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -182,7 +184,7 @@ def reset_confirm():
         connection.commit()
         cursor.close()
     except Exception as e:
-        return jsonify({"error": f"reset confirm failed: {str(e)}"}), 500
+        return jsonify({"error": f"reset confirm failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

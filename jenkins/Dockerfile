@@ -9,6 +9,7 @@ USER root
 
 # ansible-core via apt keeps this lightweight and avoids needing pip/venv
 # management inside the Jenkins container just for one tool.
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ansible && \
     rm -rf /var/lib/apt/lists/*

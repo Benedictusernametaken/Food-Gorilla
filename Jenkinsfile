@@ -57,6 +57,62 @@ pipeline {
             }
         }
 
+        // STAGE 1.6: CODE QUALITY CHECKS — Ming Hao
+        stage('Code Quality') {
+            steps {
+                echo '🔎 Running code quality checks (Ruff + mypy)...'
+                sh '''
+                    docker compose -f docker-compose.yml build backend
+                    docker compose -f docker-compose.yml run --rm backend ruff check .
+                    docker compose -f docker-compose.yml run --rm backend mypy .
+                '''
+            }
+        }
+
+        stage('Debug Frontend Build') {
+            steps {
+                sh '''
+                    docker compose -f docker-compose.yml build --no-cache frontend
+                    docker compose -f docker-compose.yml run --rm frontend cat /app/package.json
+                '''
+            }
+        }
+
+        stage('Frontend Code Quality') {
+            steps {
+                sh '''
+                    docker compose -f docker-compose.yml run --rm frontend npm run lint
+                '''
+            }
+        }
+
+        stage('Dockerfile Quality') {
+            steps {
+                sh '''
+                    echo "Checking backend Dockerfile..."
+                    docker run --rm \
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < backend/Dockerfile
+
+                    echo "Checking frontend Dockerfile..."
+                    docker run --rm \
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < frontend/Dockerfile
+
+                    echo "Checking database Dockerfile..."
+                    docker run --rm \
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < database/Dockerfile
+
+                    echo "Checking jenkins Dockerfile..."
+
+                    docker run --rm \
+                        -v "$PWD/.hadolint.yaml:/.config/hadolint.yaml" \
+                        -i hadolint/hadolint < jenkins/Dockerfile 
+                '''
+            }
+        }
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         stage('Preflight Checks via Ansible') {
             steps {

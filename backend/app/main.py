@@ -1,6 +1,8 @@
-from flask import jsonify
-import psycopg2
 import os
+
+import psycopg2
+from flask import jsonify
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -37,7 +39,7 @@ def health_check():
     except Exception as e:
         return jsonify({
             "status": "degraded",
-            "database_connectivity": f"FAILED: {str(e)}"
+            "database_connectivity": f"FAILED: {e!s}"
         }), 500
 
     finally:
