@@ -194,7 +194,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                 // Only feature/* branches reach here — main's own runs skip
                 // this (main has nothing to open a PR against itself for),
                 // and if Integration Testing failed, Jenkins never reaches
-                // this stage at all, so a failed test run never opens a PR.2
+                // this stage at all, so a failed test run never opens a PR.
                 branch pattern: 'feature/.*', comparator: 'REGEXP'
             }
             steps {
