@@ -68,6 +68,24 @@ pipeline {
             }
         }
 
+stage('Unit Tests') {
+            steps {
+                echo 'Running backend unit tests...'
+
+                sh '''
+                    python3 -m venv venv
+
+                    . venv/bin/activate
+
+                    pip install --upgrade pip
+
+                    pip install -r backend/requirements.txt
+
+                    pytest backend/tests -v
+                '''
+            }
+        }
+
         // STAGE 2: ISOLATED TESTING (Runs first!)
         stage('Integration Testing') {
             steps {
