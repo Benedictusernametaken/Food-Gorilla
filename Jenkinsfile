@@ -194,7 +194,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                 // Only feature/* branches reach here — main's own runs skip
                 // this (main has nothing to open a PR against itself for),
                 // and if Integration Testing failed, Jenkins never reaches
-                // this stage at all, so a failed test run never opens a PR.
+                // this stage at all, so a failed test run never opens a PR.2
                 branch pattern: 'feature/.*', comparator: 'REGEXP'
             }
             steps {
@@ -285,9 +285,9 @@ if body.get('database_connectivity') != 'CONNECTED':
     
 
     // 🌟 UNIFIED GLOBAL POST BLOCK (Merged GitHub notifications and console echoes)
-    post {
+post {
         success {
-                echo "GitHub notify skipped (plugin not installed)"
+            githubNotify(
                 credentialsId: 'github-token',
                 context: 'Jenkins CI/CD Pipeline',
                 description: 'Build passed successfully!',
@@ -299,7 +299,7 @@ if body.get('database_connectivity') != 'CONNECTED':
             echo "🎉 Build #${BUILD_NUMBER} Passed! The 3-tier architecture is verified and secure."
         }
         failure {
-                echo "GitHub notify skipped (plugin not installed)"
+            githubNotify(
                 credentialsId: 'github-token',
                 context: 'Jenkins CI/CD Pipeline',
                 description: 'Pipeline Failed!',
@@ -311,4 +311,3 @@ if body.get('database_connectivity') != 'CONNECTED':
             echo "❌ Build #${BUILD_NUMBER} Failed! Check the logs or integration test diagnostics above."
         }
     }
-}
