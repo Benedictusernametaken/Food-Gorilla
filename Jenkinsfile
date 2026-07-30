@@ -287,7 +287,7 @@ if body.get('database_connectivity') != 'CONNECTED':
     // 🌟 UNIFIED GLOBAL POST BLOCK (Merged GitHub notifications and console echoes)
     post {
         success {
-            githubNotify(
+                echo "GitHub notify skipped (plugin not installed)"
                 credentialsId: 'github-token',
                 context: 'Jenkins CI/CD Pipeline',
                 description: 'Build passed successfully!',
@@ -299,7 +299,7 @@ if body.get('database_connectivity') != 'CONNECTED':
             echo "🎉 Build #${BUILD_NUMBER} Passed! The 3-tier architecture is verified and secure."
         }
         failure {
-            githubNotify(
+                echo "GitHub notify skipped (plugin not installed)"
                 credentialsId: 'github-token',
                 context: 'Jenkins CI/CD Pipeline',
                 description: 'Pipeline Failed!',
