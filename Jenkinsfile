@@ -73,16 +73,12 @@ stage('Unit Tests') {
                 echo 'Running backend unit tests...'
 
                 sh '''
-                    python3 -m venv venv
+python3 -m pip install --upgrade pip
 
-                    . venv/bin/activate
+python3 -m pip install -r backend/requirements.txt
 
-                    pip install --upgrade pip
-
-                    pip install -r backend/requirements.txt
-
-                    pytest backend/tests -v
-                '''
+python3 -m pytest backend/tests -v
+'''
             }
         }
 
