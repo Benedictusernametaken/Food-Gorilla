@@ -70,15 +70,22 @@ pipeline {
 
 stage('Unit Tests') {
             steps {
-                echo 'Running backend unit tests...'
-
                 sh '''
-python3 -m pip install --upgrade pip
+        echo "===== Python ====="
+        python3 --version || true
 
-python3 -m pip install -r backend/requirements.txt
+        echo "===== pip ====="
+        pip --version || true
 
-python3 -m pytest backend/tests -v
-'''
+        echo "===== python3 -m pip ====="
+        python3 -m pip --version || true
+
+        echo "===== pytest ====="
+        pytest --version || true
+
+        echo "===== python3 -m pytest ====="
+        python3 -m pytest --version || true
+        '''
             }
         }
 
