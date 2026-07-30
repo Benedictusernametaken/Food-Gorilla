@@ -23,3 +23,9 @@ CVE-2026-59874
 
 CVE-2026-23949
 CVE-2026-24049
+
+# Reviewed 2026-07-30 by Alden
+# npm's bundled brace-expansion inside node:22-slim. Same as the other npm
+# internals — not our app code, not reachable at runtime, only fixable when
+# the base image ships a patched npm. Newly disclosed CVE, caught by the scan.
+CVE-2026-14257
