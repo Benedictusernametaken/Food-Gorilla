@@ -311,3 +311,4 @@ post {
             echo "❌ Build #${BUILD_NUMBER} Failed! Check the logs or integration test diagnostics above."
         }
     }
+}
