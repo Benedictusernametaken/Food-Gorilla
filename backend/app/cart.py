@@ -1,7 +1,9 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -84,7 +86,7 @@ def compute_serving(meal_row, ingredient_rows, overrides):
     macros — plus the actual per-ingredient quantities used. Mirrors Story
     3's customize_meal math so a cart item's totals match what the
     customization screen already showed the user."""
-    (meal_id, vendor_id, name, base_price, base_calories,
+    (_meal_id, vendor_id, name, base_price, base_calories,
      base_protein, base_carbs, base_fats) = meal_row
 
     known_ids = {row[0] for row in ingredient_rows}
@@ -220,8 +222,8 @@ def get_cart():
         cursor = connection.cursor()
         cart = fetch_cart(cursor, user_id)
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to load cart: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to load cart: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -246,8 +248,8 @@ def clear_cart():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to clear cart: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to clear cart: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -341,8 +343,8 @@ def add_to_cart():
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to add to cart: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to add to cart: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -437,8 +439,8 @@ def update_cart_item(order_item_id):
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to update cart item: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to update cart item: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -485,8 +487,8 @@ def remove_cart_item(order_item_id):
         cart = fetch_cart(cursor, user_id)
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to remove cart item: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to remove cart item: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

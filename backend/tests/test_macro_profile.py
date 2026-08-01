@@ -1,8 +1,9 @@
 import datetime
-import jwt
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.macro_profile import JWT_SECRET, JWT_ALGORITHM
+import jwt
+
+from app.macro_profile import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_return=None, fetchall_return=None):
@@ -37,7 +38,7 @@ VALID_PAYLOAD = {
     "goal": "gain_muscle",
 }
 
-PROFILE_ROW = (5, 2800, 210, 315, 78, datetime.datetime(2026, 7, 13, 12, 0, 0))
+PROFILE_ROW = (5, 2800, 210, 315, 78, datetime.datetime(2026, 7, 13, 12, 0, 0, tzinfo=datetime.timezone.utc))
 
 
 def test_create_profile_requires_auth(client):
@@ -47,7 +48,7 @@ def test_create_profile_requires_auth(client):
 
 @patch('app.macro_profile.get_db_connection')
 def test_create_profile_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=PROFILE_ROW)
+    connection, _cursor = make_mock_connection(fetchone_return=PROFILE_ROW)
     mock_get_conn.return_value = connection
 
     resp = client.post('/profile/macros', headers=auth_header(user_token()), json=VALID_PAYLOAD)
@@ -97,7 +98,7 @@ def test_create_profile_weight_non_numeric(client):
 
 @patch('app.macro_profile.get_db_connection')
 def test_create_profile_female_lose_weight(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=PROFILE_ROW)
+    connection, _cursor = make_mock_connection(fetchone_return=PROFILE_ROW)
     mock_get_conn.return_value = connection
 
     payload = {
@@ -115,7 +116,7 @@ def test_list_profiles_requires_auth(client):
 
 @patch('app.macro_profile.get_db_connection')
 def test_list_profiles_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[PROFILE_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[PROFILE_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/profile/macros', headers=auth_header(user_token()))
@@ -133,7 +134,7 @@ def test_delete_profile_requires_auth(client):
 
 @patch('app.macro_profile.get_db_connection')
 def test_delete_profile_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=(5,))
+    connection, _cursor = make_mock_connection(fetchone_return=(5,))
     mock_get_conn.return_value = connection
 
     resp = client.delete('/profile/macros/5', headers=auth_header(user_token(user_id=1)))
@@ -144,7 +145,7 @@ def test_delete_profile_success(mock_get_conn, client):
 
 @patch('app.macro_profile.get_db_connection')
 def test_delete_profile_not_owned_or_missing(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.delete('/profile/macros/999', headers=auth_header(user_token(user_id=1)))

@@ -1,4 +1,6 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import psycopg2
 
 
 def make_mock_connection(fetchall_return=None):
@@ -14,7 +16,7 @@ MEAL_ROW = (1, 1, "Lean & Mean Kitchen", "Chicken Bowl", "desc", 12.5, 500, 40, 
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')
@@ -28,7 +30,7 @@ def test_browse_menu_success(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_empty(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[])
+    connection, _cursor = make_mock_connection(fetchall_return=[])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')
@@ -39,7 +41,7 @@ def test_browse_menu_empty(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_no_auth_required(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/menu')
@@ -49,7 +51,7 @@ def test_browse_menu_no_auth_required(mock_get_conn, client):
 
 @patch('app.menu.get_db_connection')
 def test_browse_menu_db_error(mock_get_conn, client):
-    mock_get_conn.side_effect = Exception("connection refused")
+    mock_get_conn.side_effect = psycopg2.OperationalError("connection refused")
 
     resp = client.get('/menu')
 

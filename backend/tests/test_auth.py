@@ -1,8 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import bcrypt
 import jwt
-from unittest.mock import patch, MagicMock
 
-from app.auth import JWT_SECRET, JWT_ALGORITHM
+from app.auth import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_return=None):
@@ -59,7 +60,7 @@ def test_register_short_password(client):
 
 @patch('app.auth.get_db_connection')
 def test_register_duplicate_email(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=(1,))
+    connection, _cursor = make_mock_connection(fetchone_return=(1,))
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/register', json={
@@ -75,7 +76,7 @@ def test_register_duplicate_email(mock_get_conn, client):
 @patch('app.auth.get_db_connection')
 def test_login_success(mock_get_conn, client):
     password_hash = bcrypt.hashpw(b"supersecret1", bcrypt.gensalt()).decode('utf-8')
-    connection, cursor = make_mock_connection(fetchone_return=(7, "someuser", password_hash))
+    connection, _cursor = make_mock_connection(fetchone_return=(7, "someuser", password_hash))
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/login', json={
@@ -94,7 +95,7 @@ def test_login_success(mock_get_conn, client):
 @patch('app.auth.get_db_connection')
 def test_login_wrong_password(mock_get_conn, client):
     password_hash = bcrypt.hashpw(b"correctpassword", bcrypt.gensalt()).decode('utf-8')
-    connection, cursor = make_mock_connection(fetchone_return=(7, "someuser", password_hash))
+    connection, _cursor = make_mock_connection(fetchone_return=(7, "someuser", password_hash))
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/login', json={
@@ -107,7 +108,7 @@ def test_login_wrong_password(mock_get_conn, client):
 
 @patch('app.auth.get_db_connection')
 def test_login_unknown_user(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/login', json={
@@ -125,7 +126,7 @@ def test_login_missing_fields(client):
 
 @patch('app.auth.get_db_connection')
 def test_reset_request_known_email(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=(7, "someuser"))
+    connection, _cursor = make_mock_connection(fetchone_return=(7, "someuser"))
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/reset-request', json={"email": "someuser@example.com"})
@@ -137,7 +138,7 @@ def test_reset_request_known_email(mock_get_conn, client):
 
 @patch('app.auth.get_db_connection')
 def test_reset_request_unknown_email(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.post('/auth/reset-request', json={"email": "ghost@example.com"})
@@ -154,7 +155,7 @@ def test_reset_request_missing_email(client):
 
 @patch('app.auth.get_db_connection')
 def test_reset_confirm_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection()
+    connection, _cursor = make_mock_connection()
     mock_get_conn.return_value = connection
 
     import datetime
