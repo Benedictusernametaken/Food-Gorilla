@@ -91,22 +91,22 @@ pipeline {
                 sh '''
                     echo "Checking backend Dockerfile..."
                     docker run --rm \
-                        -v "$PWD/.hadolint.yaml:/.hadolint.yaml" \
+                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
                         -i hadolint/hadolint hadolint --config /.hadolint.yaml - < backend/Dockerfile
 
                     echo "Checking frontend Dockerfile..."
                     docker run --rm \
-                        -v "$PWD/.hadolint.yaml:/.hadolint.yaml" \
+                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
                         -i hadolint/hadolint hadolint --config /.hadolint.yaml - < frontend/Dockerfile
 
                     echo "Checking database Dockerfile..."
                     docker run --rm \
-                        -v "$PWD/.hadolint.yaml:/.hadolint.yaml" \
+                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
                         -i hadolint/hadolint hadolint --config /.hadolint.yaml - < database/Dockerfile
 
                     echo "Checking jenkins Dockerfile..."
                     docker run --rm \
-                        -v "$PWD/.hadolint.yaml:/.hadolint.yaml" \
+                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
                         -i hadolint/hadolint hadolint --config /.hadolint.yaml - < jenkins/Dockerfile
                 '''
             }
