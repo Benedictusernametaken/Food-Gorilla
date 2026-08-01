@@ -202,6 +202,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                         --scan /work/src \
                         --exclude "**/node_modules/**" \
                         --enableExperimental \
+                        --disableOssIndex \
                         --format HTML --format JSON \
                         --out /work/report \
                         --failOnCVSS ${DC_FAIL_CVSS} \
