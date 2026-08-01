@@ -124,7 +124,19 @@ if body.get('database_connectivity') != 'CONNECTED':
                 }
             }
         }
-
+// ==========================================
+        // INSERT YOUR SONARQUBE STAGE RIGHT HERE
+        // ==========================================
+        stage('Code Quality - SonarQube') {
+            environment {
+                SONAR_GATE_WAIT = 'true'
+            }
+            steps {
+                // Insert your group's specific scanner command here
+                echo "Running SonarQube Analysis..."
+            }
+        }
+        // ==========================================
         // STAGE 2.5: AUTO-OPEN PR TO MAIN (feature branches only, after tests pass)
         stage('Open Pull Request to main') {
             when {
