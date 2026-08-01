@@ -1,7 +1,9 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -63,8 +65,8 @@ def get_dashboard():
         )
         log_row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to load dashboard: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to load dashboard: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -144,8 +146,8 @@ def get_weekly_dashboard():
         )
         log_rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to load weekly dashboard: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to load weekly dashboard: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -204,8 +206,8 @@ def reset_daily_log():
         )
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to reset today's log: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to reset today's log: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
