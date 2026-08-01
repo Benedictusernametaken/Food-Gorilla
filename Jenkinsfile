@@ -57,6 +57,19 @@ pipeline {
             }
         }
 
+        // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
+        // Moved to run right after Checkout — this is the cheapest, fastest
+        // check ("is this host even capable of running Docker") and should
+        // fail fast before any heavier stage spends time building images.
+        stage('Preflight Checks via Ansible') {
+            steps {
+                echo '🔍 Verifying host prerequisites (Docker, Compose, disk space)...'
+                // Read-only checks only — never touches docker compose up/down,
+                // never interacts with the running app stack.
+                sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags preflight'
+            }
+        }
+
         // STAGE 1.6: CODE QUALITY CHECKS — Ming Hao
         stage('Code Quality') {
             steps {
@@ -67,6 +80,21 @@ pipeline {
                     docker compose -f docker-compose.yml run --rm backend mypy .
                 '''
             }
+            post {
+                always {
+                    // "run --rm backend ..." only removes the transient backend
+                    // container it creates — but backend depends_on database
+                    // (condition: service_healthy), so Compose also starts a
+                    // real, PERSISTENT database container as a side effect.
+                    // Nothing was ever stopping/removing that afterward, so
+                    // every single run across every branch/PR left an orphaned
+                    // database container + volume behind indefinitely. This is
+                    // a confirmed contributor to the disk-space investigation
+                    // earlier — visible as long-lived "Exited" database
+                    // containers per branch in `docker system df -v`.
+                    sh 'docker compose -f docker-compose.yml down -v --remove-orphans || true'
+                }
+            }
         }
 
         stage('Debug Frontend Build') {
@@ -76,6 +104,12 @@ pipeline {
                     docker compose -f docker-compose.yml run --rm frontend cat /app/package.json
                 '''
             }
+            post {
+                always {
+                    // Same orphaned-dependency-container issue as Code Quality above.
+                    sh 'docker compose -f docker-compose.yml down -v --remove-orphans || true'
+                }
+            }
         }
 
         stage('Frontend Code Quality') {
@@ -83,6 +117,12 @@ pipeline {
                 sh '''
                     docker compose -f docker-compose.yml run --rm frontend npm run lint
                 '''
+            }
+            post {
+                always {
+                    // Same orphaned-dependency-container issue as Code Quality above.
+                    sh 'docker compose -f docker-compose.yml down -v --remove-orphans || true'
+                }
             }
         }
 
@@ -112,23 +152,23 @@ pipeline {
             }
         }
 
-        // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
-        stage('Preflight Checks via Ansible') {
-            steps {
-                echo '🔍 Verifying host prerequisites (Docker, Compose, disk space)...'
-                // Read-only checks only — never touches docker compose up/down,
-                // never interacts with the running app stack. Runs before any
-                // build so a bad host environment fails fast and clearly.
-                sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags preflight'
-            }
-        }
-
         // STAGE 2: ISOLATED TESTING (Runs first!)
         stage('Integration Testing') {
             steps {
                 echo '🧹 DEFENSIVE CLEANUP: Wiping any stale test containers...'
-                // Using "-p ${APP_NAME}_test" guarantees this command ONLY touches test setups
-                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test down -v --remove-orphans || true'
+                // Using "-p ${APP_NAME}_test_${BUILD_NUMBER}" guarantees this
+                // command ONLY touches test setups AND that concurrent builds
+                // (e.g. two branches/PRs testing around the same time) never
+                // collide on identical container names. Without the build
+                // number, every branch/PR shared the literal same project name
+                // "foodgorilla_test" — if one build's cleanup fired while
+                // another's test stage was still mid-run, the second build
+                // would hit "Error response from daemon: No such container",
+                // since its containers had just been deleted out from under it
+                // by the first build's teardown. BUILD_NUMBER is unique per
+                // run within this job, so each build now gets a fully isolated
+                // project namespace.
+                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} down -v --remove-orphans || true'
 
                 echo 'Building and starting the full dependency chain (database -> backend -> frontend)...'
                 // Now that backend has its own HEALTHCHECK and frontend has
@@ -142,10 +182,10 @@ pipeline {
                 // here too — even under the separate "_test" project
                 // namespace, an unqualified "up" would still spin up an
                 // unnecessary throwaway jenkins container every single run.
-                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test up -d --build database frontend backend'
+                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} up -d --build database frontend backend'
 
                 echo 'Checking container status...'
-                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test ps'
+                sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} ps'
 
                 echo 'Verifying backend health endpoint content (not just container status)...'
                 // By this point Docker's own HEALTHCHECK already confirmed the
@@ -154,7 +194,7 @@ pipeline {
                 // confirms the JSON body itself reports a real DB connection,
                 // which the container-level HEALTHCHECK doesn't inspect.
                 sh '''
-                    docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test exec -T backend python -c "
+                    docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} exec -T backend python -c "
 import urllib.request, json, sys
 res = urllib.request.urlopen('http://127.0.0.1:5000/health-check', timeout=5)
 body = json.loads(res.read())
@@ -168,14 +208,14 @@ if body.get('database_connectivity') != 'CONNECTED':
             post {
                 always {
                     echo '--- CAPTURING LOGS (post-attempt, for diagnostics) ---'
-                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test logs backend > backend_debug.log 2>&1 || true'
-                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test logs frontend > frontend_debug.log 2>&1 || true'
+                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} logs backend > backend_debug.log 2>&1 || true'
+                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} logs frontend > frontend_debug.log 2>&1 || true'
                     sh 'cat backend_debug.log || true'
                     sh 'cat frontend_debug.log || true'
                     archiveArtifacts artifacts: 'backend_debug.log,frontend_debug.log', allowEmptyArchive: true
 
                     echo 'Cleaning up isolated test architecture environment...'
-                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test down -v --remove-orphans || true'
+                    sh 'docker compose ${COMPOSE_TEST_FILES} -p ${APP_NAME}_test_${BUILD_NUMBER} down -v --remove-orphans || true'
                 }
             }
         }
