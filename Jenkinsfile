@@ -231,6 +231,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                 echo '📋 Staging .trivyignore into the Trivy cache volume...'
                 sh '''
                     docker run --rm -i -v trivy-cache:/cache \
+                      -e BUILD_NUMBER=${BUILD_NUMBER} \
                       --entrypoint sh aquasec/trivy:latest \
                       -c 'cat > /cache/trivyignore-${BUILD_NUMBER}' < .trivyignore
                 '''
