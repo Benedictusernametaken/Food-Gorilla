@@ -1,8 +1,9 @@
 import datetime
-import jwt
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.checkout import JWT_SECRET, JWT_ALGORITHM
+import jwt
+
+from app.checkout import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_side_effect=None, fetchall_side_effect=None):
@@ -31,7 +32,7 @@ def auth_header(token):
 
 
 # order_id, vendor_id, order_status, order_date, total_price, total_calories, total_protein, total_carbs, total_fats
-CONFIRMED_ORDER_ROW = (55, 7, "confirmed", datetime.datetime(2026, 7, 13, 12, 0, 0), 25.0, 1040, 90, 100, 20)
+CONFIRMED_ORDER_ROW = (55, 7, "confirmed", datetime.datetime(2026, 7, 13, 12, 0, 0, tzinfo=datetime.timezone.utc), 25.0, 1040, 90, 100, 20)
 
 
 # ---------------------------------------------------------------------------
@@ -45,7 +46,7 @@ def test_checkout_requires_auth(client):
 
 @patch('app.checkout.get_db_connection')
 def test_checkout_empty_cart_rejected(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.post('/checkout', headers=auth_header(user_token()))
@@ -168,7 +169,7 @@ def test_get_order_requires_auth(client):
 
 @patch('app.checkout.get_db_connection')
 def test_get_order_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/orders/55', headers=auth_header(user_token()))
@@ -178,7 +179,7 @@ def test_get_order_not_found(mock_get_conn, client):
 
 @patch('app.checkout.get_db_connection')
 def test_get_order_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             (55,),                # ownership/status check
             CONFIRMED_ORDER_ROW,  # fetch_order_detail: order row

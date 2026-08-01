@@ -1,7 +1,9 @@
-from flask import jsonify, request
-import psycopg2
 import os
+
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -154,8 +156,8 @@ def create_macro_profile():
         row = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to save macro profile: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to save macro profile: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -181,8 +183,8 @@ def list_macro_profiles():
         )
         rows = cursor.fetchall()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to list macro profiles: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to list macro profiles: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -207,8 +209,8 @@ def delete_macro_profile(profile_id):
         deleted = cursor.fetchone()
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"failed to delete macro profile: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"failed to delete macro profile: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

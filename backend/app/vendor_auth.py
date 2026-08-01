@@ -1,10 +1,12 @@
-from flask import jsonify, request
-import psycopg2
+import datetime
 import os
 import re
-import datetime
+
 import bcrypt
 import jwt
+import psycopg2
+from flask import jsonify, request
+
 # Import the shared master app instance from your package folder
 from app import app
 
@@ -63,8 +65,8 @@ def vendor_register():
         vendor_id = cursor.fetchone()[0]
         connection.commit()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"registration failed: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"registration failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()
@@ -92,8 +94,8 @@ def vendor_login():
         )
         row = cursor.fetchone()
         cursor.close()
-    except Exception as e:
-        return jsonify({"error": f"login failed: {str(e)}"}), 500
+    except psycopg2.Error as e:
+        return jsonify({"error": f"login failed: {e!s}"}), 500
     finally:
         if connection:
             connection.close()

@@ -1,8 +1,9 @@
 import datetime
-import jwt
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.cart import JWT_SECRET, JWT_ALGORITHM
+import jwt
+
+from app.cart import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_side_effect=None, fetchall_side_effect=None):
@@ -53,7 +54,7 @@ def test_get_cart_requires_auth(client):
 
 @patch('app.cart.get_db_connection')
 def test_get_cart_empty(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.get('/cart', headers=auth_header(user_token()))
@@ -69,7 +70,7 @@ def test_get_cart_empty(mock_get_conn, client):
 def test_get_cart_with_items(mock_get_conn, client):
     order_row = (100, 7, 25.0, 1040, 90, 100, 20)
     item_row = (1000, 1, "Chicken Bowl", 2, 25.0, 1040, 90, 100, 20)
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[order_row],
         fetchall_side_effect=[[item_row], [(10, "Extra Chicken Breast", 2)]],
     )
@@ -117,7 +118,7 @@ def test_add_to_cart_invalid_ingredients_type(client):
 
 @patch('app.cart.get_db_connection')
 def test_add_to_cart_meal_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.post(
@@ -144,7 +145,7 @@ def test_add_to_cart_unknown_ingredient(mock_get_conn, client):
 @patch('app.cart.get_db_connection')
 def test_add_to_cart_creates_new_order(mock_get_conn, client):
     # meal lookup -> no existing pending order -> insert order -> insert item -> fetch_cart
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             MEAL_ROW,          # fetch_meal_with_ingredients: meal row
             None,               # no existing pending order
@@ -173,7 +174,7 @@ def test_add_to_cart_creates_new_order(mock_get_conn, client):
 
 @patch('app.cart.get_db_connection')
 def test_add_to_cart_different_vendor_rejected(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             MEAL_ROW,        # vendor_id 7
             (55, 999),       # existing pending order for a different vendor
@@ -206,7 +207,7 @@ def test_update_cart_item_nothing_to_update(client):
 
 @patch('app.cart.get_db_connection')
 def test_update_cart_item_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.put(
@@ -218,7 +219,7 @@ def test_update_cart_item_not_found(mock_get_conn, client):
 
 @patch('app.cart.get_db_connection')
 def test_update_cart_item_quantity_only(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             (55, 1, 1),          # order_id, meal_id, current_quantity
             MEAL_ROW,            # fetch_meal_with_ingredients: meal row
@@ -253,7 +254,7 @@ def test_remove_cart_item_requires_auth(client):
 
 @patch('app.cart.get_db_connection')
 def test_remove_cart_item_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[None])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[None])
     mock_get_conn.return_value = connection
 
     resp = client.delete('/cart/items/1', headers=auth_header(user_token()))
@@ -263,7 +264,7 @@ def test_remove_cart_item_not_found(mock_get_conn, client):
 
 @patch('app.cart.get_db_connection')
 def test_remove_cart_item_success_leaves_other_items(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             (55,),   # order_id owning this item
             (1,),    # COUNT(*) remaining items -> 1
@@ -285,7 +286,7 @@ def test_remove_cart_item_success_leaves_other_items(mock_get_conn, client):
 
 @patch('app.cart.get_db_connection')
 def test_remove_last_cart_item_empties_cart(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[
             (55,),   # order_id owning this item
             (0,),    # COUNT(*) remaining items -> 0, order gets deleted
@@ -313,7 +314,7 @@ def test_clear_cart_requires_auth(client):
 
 @patch('app.cart.get_db_connection')
 def test_clear_cart_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection()
+    connection, _cursor = make_mock_connection()
     mock_get_conn.return_value = connection
 
     resp = client.delete('/cart', headers=auth_header(user_token()))

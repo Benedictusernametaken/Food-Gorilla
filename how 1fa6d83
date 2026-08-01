@@ -1,0 +1,62 @@
+[33mcommit 1fa6d838bea2d054b17aeaad77676ca755a757e1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/Min-Jenkins-Code-QualityCheck[m[33m, [m[1;31morigin/feature/Min-Jenkins-Code-QualityCheck[m[33m)[m
+Author: Min-hao11 <25043325@myrp.edu.sg>
+Date:   Wed Jul 29 02:38:43 2026 +0000
+
+    fix ruff lint errors (unused unpacked variables, import sorting)
+
+ backend/app/__init__.py             | 28 [32m+++++++++++++[m[31m---------------[m
+ backend/app/auth.py                 | 16 [32m+++++++++[m[31m-------[m
+ backend/app/cart.py                 | 16 [32m+++++++++[m[31m-------[m
+ backend/app/checkout.py             | 12 [32m+++++++[m[31m-----[m
+ backend/app/daily_log.py            | 10 [32m++++++[m[31m----[m
+ backend/app/dashboard.py            | 12 [32m+++++++[m[31m-----[m
+ backend/app/macro_profile.py        | 12 [32m+++++++[m[31m-----[m
+ backend/app/main.py                 |  8 [32m+++++[m[31m---[m
+ backend/app/meal_builder.py         | 10 [32m++++++[m[31m----[m
+ backend/app/menu.py                 |  8 [32m+++++[m[31m---[m
+ backend/app/subscriptions.py        | 20 [32m+++++++++++[m[31m---------[m
+ backend/app/vendor_auth.py          | 12 [32m+++++++[m[31m-----[m
+ backend/app/vendor_meals.py         | 22 [32m++++++++++++[m[31m----------[m
+ backend/tests/test_auth.py          |  6 [32m+++[m[31m---[m
+ backend/tests/test_cart.py          |  6 [32m+++[m[31m---[m
+ backend/tests/test_checkout.py      |  6 [32m+++[m[31m---[m
+ backend/tests/test_daily_log.py     |  6 [32m+++[m[31m---[m
+ backend/tests/test_dashboard.py     |  6 [32m+++[m[31m---[m
+ backend/tests/test_macro_profile.py |  6 [32m+++[m[31m---[m
+ backend/tests/test_meal_builder.py  |  2 [32m+[m[31m-[m
+ backend/tests/test_menu.py          |  2 [32m+[m[31m-[m
+ backend/tests/test_subscriptions.py |  6 [32m+++[m[31m---[m
+ backend/tests/test_vendor_auth.py   |  6 [32m+++[m[31m---[m
+ backend/tests/test_vendor_meals.py  |  6 [32m+++[m[31m---[m
+ 24 files changed, 133 insertions(+), 111 deletions(-)
+[33mcommit 1fa6d838bea2d054b17aeaad77676ca755a757e1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/Min-Jenkins-Code-QualityCheck[m[33m, [m[1;31morigin/feature/Min-Jenkins-Code-QualityCheck[m[33m)[m
+Author: Min-hao11 <25043325@myrp.edu.sg>
+Date:   Wed Jul 29 02:38:43 2026 +0000
+
+    fix ruff lint errors (unused unpacked variables, import sorting)
+
+ backend/app/__init__.py             | 28 [32m+++++++++++++[m[31m---------------[m
+ backend/app/auth.py                 | 16 [32m+++++++++[m[31m-------[m
+ backend/app/cart.py                 | 16 [32m+++++++++[m[31m-------[m
+ backend/app/checkout.py             | 12 [32m+++++++[m[31m-----[m
+ backend/app/daily_log.py            | 10 [32m++++++[m[31m----[m
+ backend/app/dashboard.py            | 12 [32m+++++++[m[31m-----[m
+ backend/app/macro_profile.py        | 12 [32m+++++++[m[31m-----[m
+ backend/app/main.py                 |  8 [32m+++++[m[31m---[m
+ backend/app/meal_builder.py         | 10 [32m++++++[m[31m----[m
+ backend/app/menu.py                 |  8 [32m+++++[m[31m---[m
+ backend/app/subscriptions.py        | 20 [32m+++++++++++[m[31m---------[m
+ backend/app/vendor_auth.py          | 12 [32m+++++++[m[31m-----[m
+ backend/app/vendor_meals.py         | 22 [32m++++++++++++[m[31m----------[m
+ backend/tests/test_auth.py          |  6 [32m+++[m[31m---[m
+ backend/tests/test_cart.py          |  6 [32m+++[m[31m---[m
+ backend/tests/test_checkout.py      |  6 [32m+++[m[31m---[m
+ backend/tests/test_daily_log.py     |  6 [32m+++[m[31m---[m
+ backend/tests/test_dashboard.py     |  6 [32m+++[m[31m---[m
+ backend/tests/test_macro_profile.py |  6 [32m+++[m[31m---[m
+ backend/tests/test_meal_builder.py  |  2 [32m+[m[31m-[m
+ backend/tests/test_menu.py          |  2 [32m+[m[31m-[m
+ backend/tests/test_subscriptions.py |  6 [32m+++[m[31m---[m
+ backend/tests/test_vendor_auth.py   |  6 [32m+++[m[31m---[m
+ backend/tests/test_vendor_meals.py  |  6 [32m+++[m[31m---[m
+ 24 files changed, 133 insertions(+), 111 deletions(-)

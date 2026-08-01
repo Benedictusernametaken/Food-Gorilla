@@ -1,8 +1,9 @@
 import datetime
-import jwt
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.vendor_meals import JWT_SECRET, JWT_ALGORITHM
+import jwt
+
+from app.vendor_meals import JWT_ALGORITHM, JWT_SECRET
 
 
 def make_mock_connection(fetchone_return=None, fetchall_return=None,
@@ -57,7 +58,7 @@ def test_list_meals_rejects_customer_token(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_list_meals_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/vendor/meals', headers=auth_header(vendor_token(vendor_id=1)))
@@ -70,7 +71,7 @@ def test_list_meals_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_create_meal_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=MEAL_ROW)
+    connection, _cursor = make_mock_connection(fetchone_return=MEAL_ROW)
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/meals', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -119,7 +120,7 @@ def test_create_meal_requires_auth(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_get_meal_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=MEAL_ROW)
+    connection, _cursor = make_mock_connection(fetchone_return=MEAL_ROW)
     mock_get_conn.return_value = connection
 
     resp = client.get('/vendor/meals/10', headers=auth_header(vendor_token(vendor_id=1)))
@@ -130,7 +131,7 @@ def test_get_meal_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_get_meal_not_found_or_not_owned(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.get('/vendor/meals/999', headers=auth_header(vendor_token(vendor_id=1)))
@@ -154,7 +155,7 @@ def test_update_meal_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_update_meal_not_owned(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.put('/vendor/meals/999', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -166,7 +167,7 @@ def test_update_meal_not_owned(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_delete_meal_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=(10,))
+    connection, _cursor = make_mock_connection(fetchone_return=(10,))
     mock_get_conn.return_value = connection
 
     resp = client.delete('/vendor/meals/10', headers=auth_header(vendor_token(vendor_id=1)))
@@ -177,7 +178,7 @@ def test_delete_meal_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_delete_meal_not_owned(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.delete('/vendor/meals/999', headers=auth_header(vendor_token(vendor_id=1)))
@@ -188,7 +189,7 @@ def test_delete_meal_not_owned(mock_get_conn, client):
 @patch('app.vendor_meals.get_db_connection')
 def test_toggle_availability_success(mock_get_conn, client):
     off_row = MEAL_ROW[:-1] + (False,)
-    connection, cursor = make_mock_connection(fetchone_return=off_row)
+    connection, _cursor = make_mock_connection(fetchone_return=off_row)
     mock_get_conn.return_value = connection
 
     resp = client.patch('/vendor/meals/10/availability', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -207,7 +208,7 @@ def test_toggle_availability_missing_field(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_toggle_availability_not_owned(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=None)
+    connection, _cursor = make_mock_connection(fetchone_return=None)
     mock_get_conn.return_value = connection
 
     resp = client.patch('/vendor/meals/999/availability', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -228,7 +229,7 @@ def test_list_ingredients_requires_auth(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_list_ingredients_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[INGREDIENT_CATALOG_ROW])
+    connection, _cursor = make_mock_connection(fetchall_return=[INGREDIENT_CATALOG_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/vendor/ingredients', headers=auth_header(vendor_token()))
@@ -269,7 +270,7 @@ def test_create_ingredient_negative_values(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_create_ingredient_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=INGREDIENT_CATALOG_ROW)
+    connection, _cursor = make_mock_connection(fetchone_return=INGREDIENT_CATALOG_ROW)
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/ingredients', headers=auth_header(vendor_token()), json={
@@ -289,7 +290,7 @@ def test_create_ingredient_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_create_meal_with_ingredients_success(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_return=MEAL_ROW,
         fetchall_side_effect=[[(1,)], [MEAL_INGREDIENT_ROW]],
     )
@@ -309,7 +310,7 @@ def test_create_meal_with_ingredients_success(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_create_meal_ingredient_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchall_return=[])
+    connection, _cursor = make_mock_connection(fetchall_return=[])
     mock_get_conn.return_value = connection
 
     resp = client.post('/vendor/meals', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -338,7 +339,7 @@ def test_create_meal_ingredients_bad_quantity(client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_get_meal_includes_ingredients(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=MEAL_ROW, fetchall_return=[MEAL_INGREDIENT_ROW])
+    connection, _cursor = make_mock_connection(fetchone_return=MEAL_ROW, fetchall_return=[MEAL_INGREDIENT_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.get('/vendor/meals/10', headers=auth_header(vendor_token(vendor_id=1)))
@@ -350,7 +351,7 @@ def test_get_meal_includes_ingredients(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_update_meal_replaces_ingredients(mock_get_conn, client):
-    connection, cursor = make_mock_connection(
+    connection, _cursor = make_mock_connection(
         fetchone_side_effect=[MEAL_ROW, MEAL_ROW],
         fetchall_side_effect=[[(1,)], [MEAL_INGREDIENT_ROW]],
     )
@@ -369,7 +370,7 @@ def test_update_meal_replaces_ingredients(mock_get_conn, client):
 
 @patch('app.vendor_meals.get_db_connection')
 def test_update_meal_ingredient_not_found(mock_get_conn, client):
-    connection, cursor = make_mock_connection(fetchone_return=MEAL_ROW, fetchall_return=[])
+    connection, _cursor = make_mock_connection(fetchone_return=MEAL_ROW, fetchall_return=[])
     mock_get_conn.return_value = connection
 
     resp = client.put('/vendor/meals/10', headers=auth_header(vendor_token(vendor_id=1)), json={
@@ -383,7 +384,7 @@ def test_update_meal_ingredient_not_found(mock_get_conn, client):
 @patch('app.vendor_meals.replace_meal_ingredients')
 @patch('app.vendor_meals.get_db_connection')
 def test_update_meal_without_ingredients_key_leaves_recipe_untouched(mock_get_conn, mock_replace, client):
-    connection, cursor = make_mock_connection(fetchone_side_effect=[MEAL_ROW, MEAL_ROW])
+    connection, _cursor = make_mock_connection(fetchone_side_effect=[MEAL_ROW, MEAL_ROW])
     mock_get_conn.return_value = connection
 
     resp = client.put('/vendor/meals/10', headers=auth_header(vendor_token(vendor_id=1)), json={
