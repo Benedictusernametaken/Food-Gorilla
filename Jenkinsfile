@@ -130,24 +130,20 @@ pipeline {
             steps {
                 sh '''
                     echo "Checking backend Dockerfile..."
-                    docker run --rm \
-                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
-                        -i hadolint/hadolint hadolint --config /.hadolint.yaml - < backend/Dockerfile
+                    docker run --rm -i hadolint/hadolint \
+                        hadolint --ignore DL3008 --failure-threshold error - < backend/Dockerfile
 
                     echo "Checking frontend Dockerfile..."
-                    docker run --rm \
-                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
-                        -i hadolint/hadolint hadolint --config /.hadolint.yaml - < frontend/Dockerfile
+                    docker run --rm -i hadolint/hadolint \
+                        hadolint --ignore DL3008 --failure-threshold error - < frontend/Dockerfile
 
                     echo "Checking database Dockerfile..."
-                    docker run --rm \
-                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
-                        -i hadolint/hadolint hadolint --config /.hadolint.yaml - < database/Dockerfile
+                    docker run --rm -i hadolint/hadolint \
+                        hadolint --ignore DL3008 --failure-threshold error - < database/Dockerfile
 
                     echo "Checking jenkins Dockerfile..."
-                    docker run --rm \
-                        -v "${WORKSPACE}/.hadolint.yaml:/.hadolint.yaml" \
-                        -i hadolint/hadolint hadolint --config /.hadolint.yaml - < jenkins/Dockerfile
+                    docker run --rm -i hadolint/hadolint \
+                        hadolint --ignore DL3008 --failure-threshold error - < jenkins/Dockerfile
                 '''
             }
         }
