@@ -88,6 +88,22 @@ pipeline {
         //
         // Setup this stage depends on (once, on the Jenkins host): see
         // SONARQUBE.md at the repo root.
+
+        stage('Unit Tests') {
+            steps {
+                echo '🧪 Running backend unit tests...'
+                sh '''
+                    docker compose -f docker-compose.yml build backend
+                    docker compose -f docker-compose.yml run --rm backend pytest tests -v
+                '''
+            }
+            post {
+                always {
+                    sh 'docker compose -f docker-compose.yml down -v --remove-orphans || true'
+                }
+            }
+        }
+
         stage('Code Quality - SonarQube') {
             environment {
                 // Pinned deliberately — see SONARQUBE.md section 2.
