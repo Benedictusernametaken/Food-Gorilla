@@ -69,6 +69,98 @@ pipeline {
                 sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags preflight'
             }
         }
+        // ============ NEW: SonarQube code quality — Ryan ============
+        // Complements Ming Hao's linter stages rather than replacing them.
+        //
+        //   Ruff / mypy / eslint / hadolint (Ming Hao)
+        //       -> per-file rule checks. Fast, catch style and obvious mistakes.
+        //   SonarQube (here)
+        //       -> whole-codebase analysis: data flow ACROSS files, duplication
+        //          across the repo, and metrics tracked over time so we can see
+        //          whether the codebase is getting better or worse.
+        //
+        // There is real overlap in the Python/JS rules. The part that is NOT
+        // duplicated is cross-file analysis, duplication detection, and history.
+        //
+        // Runs as a CONTAINER, same as the Trivy and Dependency-Check stages —
+        // nothing to install on the Jenkins server, and the scanner version is
+        // pinned so results don't drift between builds.
+        //
+        // Setup this stage depends on (once, on the Jenkins host): see
+        // SONARQUBE.md at the repo root.
+        stage('Code Quality - SonarQube') {
+            environment {
+                // Pinned deliberately — see SONARQUBE.md section 2.
+                SONAR_SCANNER_IMAGE = 'sonarsource/sonar-scanner-cli:11'
+
+                // The SonarQube server runs as a long-lived container on the
+                // Jenkins host, attached to this network. The scanner joins the
+                // same network and reaches it by container name — the same
+                // reason our backend reaches Postgres at "database:5432" rather
+                // than 127.0.0.1.
+                SONAR_NETWORK = 'sonar-net'
+                SONAR_HOST    = 'http://sonarqube:9000'
+
+                // ---- Enforcement knob (the ONLY line to touch later) ----
+                // Phase 1 (current): 'false' — the scanner uploads results and
+                // exits. The dashboard updates, the build never fails. That is
+                // deliberate: the default quality gate judges NEW code, so
+                // turning this on without warning would block whoever pushes
+                // next, over their own in-progress work.
+                // Phase 2: 'true' — the scanner waits for the gate and fails
+                // the build when the gate fails.
+                SONAR_GATE_WAIT = 'false'
+            }
+            steps {
+                echo 'Analysing code quality with SonarQube...'
+                // Token is a Jenkins secret-text credential, never in the repo.
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        # Preflight: fail with a fixable message instead of a
+                        # confusing connection error two minutes in.
+                        docker network inspect ${SONAR_NETWORK} >/dev/null 2>&1 || {
+                            echo "ERROR: docker network '${SONAR_NETWORK}' does not exist on this host."
+                            echo "The SonarQube server has not been set up. See SONARQUBE.md section 3."
+                            exit 1; }
+                        docker ps --format '{{.Names}}' | grep -qx sonarqube || {
+                            echo "ERROR: the 'sonarqube' container is not running on this host."
+                            echo "Start it with: docker start sonarqube   (see SONARQUBE.md section 3)"
+                            exit 1; }
+
+                        # Same constraint the Trivy and Dependency-Check stages
+                        # hit: Jenkins runs inside a container but talks to the
+                        # HOST Docker daemon, so "-v $(pwd):/usr/src" would ask
+                        # the host to mount a path that only exists inside the
+                        # Jenkins container — you get an empty directory, with no
+                        # error. Pipe the source into a named volume instead.
+                        echo "Staging source into the scan volume..."
+                        tar -cf - \
+                              --exclude='node_modules' \
+                              --exclude='__pycache__' \
+                              --exclude='.pytest_cache' \
+                              backend frontend sonar-project.properties \
+                          | docker run --rm -i -v sonar-src:/usr/src \
+                              --entrypoint sh ${SONAR_SCANNER_IMAGE} \
+                              -c 'rm -rf /usr/src/* /usr/src/.scannerwork && tar -xf - -C /usr/src'
+
+                        # set +x so the token never lands in the build log.
+                        set +x
+                        docker run --rm \
+                            --network ${SONAR_NETWORK} \
+                            -v sonar-src:/usr/src \
+                            -v sonar-cache:/opt/sonar-scanner/.sonar/cache \
+                            ${SONAR_SCANNER_IMAGE} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.token=${SONAR_TOKEN} \
+                            -Dsonar.qualitygate.wait=${SONAR_GATE_WAIT}
+                        set -x
+
+                        echo "Analysis uploaded. Dashboard: see SONARQUBE.md section 5."
+                    '''
+                }
+            }
+        }
+        // ============ END NEW ============
 
         // STAGE 1.6: CODE QUALITY CHECKS — Ming Hao
         stage('Code Quality') {
