@@ -71,21 +71,16 @@ pipeline {
 stage('Unit Tests') {
             steps {
                 sh '''
-        echo "===== Python ====="
-        python3 --version || true
+                    python3 -m venv venv
 
-        echo "===== pip ====="
-        pip --version || true
+                    . venv/bin/activate
 
-        echo "===== python3 -m pip ====="
-        python3 -m pip --version || true
+                    pip install --upgrade pip
 
-        echo "===== pytest ====="
-        pytest --version || true
+                    pip install -r backend/requirements.txt
 
-        echo "===== python3 -m pytest ====="
-        python3 -m pytest --version || true
-        '''
+                    pytest backend/tests -v
+                '''
             }
         }
 
