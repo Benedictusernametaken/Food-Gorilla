@@ -376,6 +376,110 @@ if body.get('database_connectivity') != 'CONNECTED':
                 }
             }
         }
+        // ============ NEW: dependency scanning — Ryan ============
+        // Second layer, on top of Alden's Trivy stage above.
+        //
+        //   Trivy (Alden)  -> scans the built IMAGES: the base image's OS
+        //                     packages and what is installed inside the container.
+        //   OWASP DC (here) -> scans the SOURCE MANIFESTS those images are built
+        //                     from (backend/requirements.txt,
+        //                     frontend/package-lock.json) against the NVD CVE
+        //                     database.
+        //
+        // Two scanners, two different questions. An outdated Flask pinned in
+        // requirements.txt is a source-manifest problem Trivy's image scan is
+        // not designed to answer; a vulnerable OS package baked into
+        // python:3.10-slim is an image problem Dependency-Check never sees.
+        // That is what "defense in depth" means here — not two tools doing the
+        // same job twice.
+        //
+        // Runs as a CONTAINER, same as Alden's Trivy stage — nothing to install
+        // on the Jenkins server, and the version is pinned so two builds a month
+        // apart report the same findings on identical code.
+        stage('Security Scan - Dependencies') {
+            environment {
+                // Pinned deliberately. See SECURITY_SCANNING.md section 2.
+                DC_IMAGE = 'owasp/dependency-check:12.1.0'
+
+                // ---- Enforcement knob (the ONLY line to touch later) ----
+                // Phase 1 (current): REPORT-ONLY. CVSS scores cap at 10, so a
+                // threshold of 11 can never trigger — findings are reported but
+                // never fail the build. That is deliberate for day one: nobody
+                // has triaged these yet, and hard-failing every teammate's push
+                // over pre-existing debt would block all 6 of us.
+                // Phase 2: change 11 -> 7 to fail on CVSS >= 7.0.
+                DC_FAIL_CVSS = '11'
+            }
+            steps {
+                echo 'Scanning third-party dependencies with OWASP Dependency-Check...'
+                sh '''
+                    # Same constraint Alden hit when staging .trivyignore: this
+                    # Jenkins runs inside a container but talks to the HOST Docker
+                    # daemon, so "-v $(pwd):/src" would ask the host to mount a
+                    # path that only exists inside the Jenkins container — you get
+                    # an empty directory, not the workspace. Pipe the files into a
+                    # named volume instead, which both sides can see.
+                    echo "Staging dependency manifests into the scan volume..."
+                    tar -cf - backend/requirements.txt \
+                              frontend/package.json \
+                              frontend/package-lock.json \
+                      | docker run --rm -i --user root -v dc-work:/work \
+                          --entrypoint sh ${DC_IMAGE} \
+                          -c 'rm -rf /work/src /work/report && mkdir -p /work/src /work/report && tar -xf - -C /work/src'
+
+                    # The NVD database lives in its own named volume so it
+                    # survives builds and container rebuilds. The first sync is
+                    # slow (that is the whole CVE database downloading, not a
+                    # hang); every later build is incremental.
+                    #
+                    # set +x so the API key never lands in the build log.
+                    set +x
+                    NVD_KEY_ARG=""
+                    if [ -n "${NVD_API_KEY:-}" ]; then
+                        NVD_KEY_ARG="--nvdApiKey ${NVD_API_KEY}"
+                        echo "Using NVD API key from Jenkins global configuration."
+                    else
+                        echo "WARNING: NVD_API_KEY is not set - the NVD sync will be slow and rate-limited (SECURITY_SCANNING.md section 4)."
+                    fi
+
+                    # --enableExperimental is REQUIRED: without it Dependency-Check
+                    # silently skips Python entirely and backend/requirements.txt
+                    # goes unscanned. It reports no error when that happens, which
+                    # is exactly why it is easy to get wrong.
+                    docker run --rm --user root \
+                        -v dc-work:/work \
+                        -v dc-data:/usr/share/dependency-check/data \
+                        ${DC_IMAGE} \
+                        --project "${APP_NAME}" \
+                        --scan /work/src \
+                        --exclude "**/node_modules/**" \
+                        --enableExperimental \
+                        --disableOssIndex \
+                        --format HTML --format JSON \
+                        --out /work/report \
+                        --failOnCVSS ${DC_FAIL_CVSS} \
+                        ${NVD_KEY_ARG}
+                    set -x
+
+                    # Copy the report back out of the volume into the workspace,
+                    # so archiveArtifacts below can pick it up.
+                    rm -rf dependency-check-report
+                    mkdir -p dependency-check-report
+                    docker run --rm --user root -v dc-work:/work \
+                        --entrypoint sh ${DC_IMAGE} \
+                        -c 'tar -cf - -C /work/report .' \
+                      | tar -xf - -C dependency-check-report
+                '''
+            }
+            post {
+                always {
+                    // Report on every run, pass or fail: build page ->
+                    // "Archived artifacts".
+                    archiveArtifacts artifacts: 'dependency-check-report/**', allowEmptyArchive: true
+                }
+            }
+        }
+        // ============ END NEW ============
 
         // STAGE 2.5: AUTO-OPEN PR TO MAIN (feature branches only, after tests pass)
         stage('Open Pull Request to main') {
