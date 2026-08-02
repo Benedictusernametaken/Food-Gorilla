@@ -57,6 +57,7 @@ pipeline {
             }
         }
 
+
         // STAGE 1.5: HOST PREFLIGHT CHECKS (runs for every branch, before any build)
         // Moved to run right after Checkout — this is the cheapest, fastest
         // check ("is this host even capable of running Docker") and should
@@ -255,7 +256,7 @@ if body.get('database_connectivity') != 'CONNECTED':
                       -v trivy-cache:/root/.cache/trivy \
                       aquasec/trivy:latest image \
                       --severity HIGH,CRITICAL --ignore-unfixed \
-                      --ignorefile /root/.cache/trivy/trivyignore \
+                      --ignorefile /root/.cache/trivy/trivyignore-${BUILD_NUMBER} \
                       --exit-code 1 --no-progress \
                       ${APP_NAME}-frontend:scan-${BUILD_NUMBER}
                 '''
