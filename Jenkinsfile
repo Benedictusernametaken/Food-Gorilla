@@ -69,6 +69,23 @@ pipeline {
                 sh 'ansible-playbook -i "localhost," ansible/playbook.yml --tags preflight'
             }
         }
+
+        stage('Unit Tests') {
+            steps {
+                echo '🧪 Running backend unit tests...'
+                sh '''
+                    docker compose -f docker-compose.yml build backend
+                    docker compose -f docker-compose.yml run --rm backend pytest tests -v
+                '''
+            }
+            post {
+                always {
+                    sh 'docker compose -f docker-compose.yml down -v --remove-orphans || true'
+                }
+            }
+        }
+
+        
         // ============ NEW: SonarQube code quality — Ryan ============
         // Complements Ming Hao's linter stages rather than replacing them.
         //
